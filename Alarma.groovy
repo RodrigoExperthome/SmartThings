@@ -12,11 +12,11 @@ definition(
     description: "Sistema de Alarma ExpertHome",
     category: "Convenience",
     //Colocar iconos ExpertHome disponibles
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact@2x.png"
+    iconUrl: "https://s3.amazonaws.com/smartapp-icons/SafetyAndSecurity/App-IsItSafe.png",
+    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/SafetyAndSecurity/App-IsItSafe@2x.png"
 )
 
-
+/**
 // Definir escenario A
 def pageSetupScenarioA() {
     def inputLightsA = [
@@ -98,7 +98,7 @@ def pageSetupScenarioA() {
         }      
 	}
 }
-
+*/
 def installed() {
     initialize()
 }
@@ -111,12 +111,16 @@ def updated() {
 
 def initialize() {
 	state.lucesOff = []
-	if(A_motion) {
-		subscribe(settings.A_motion, "motion", onEventA)
+	if (state.afuera) {
+		subscribe(settings.afueraMovimiento, "motion.active", onAlarma)
+		subscribe(settings.afueraContacto, "contact.open", onAlarma)
 	}
-	if(A_contact) {
-		subscribe(settings.A_contact, "contact", onEventA)
+	if (state.enCasa) {
+		subscribe(settings.enCasaMovimiento, "motion.active", onAlarma)
+		subscribe(settings.enCasaContacto, "contact.open", onAlarma)
 	}
+	
+	
 }
 
 def onEventA(evt) {
