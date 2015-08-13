@@ -2,6 +2,7 @@
  *  Expert Alarm
  *
  *  Version 1.0.0 (8/12/2015)
+ *  Inspired in SmartAlarm by statusbits.
  *
  *  The latest version of this file can be found on GitHub at:
  *  --------------------------------------------------------------------------
@@ -57,206 +58,64 @@ def pageSetup() {
     ]
 
     return dynamicPage(pageProperties) {
-        section("Opciones") {
-            href "pageSensores", title:"Add/Remove Zones", description:"Tap to open"
-            href "pageConfigureZones", title:"Configure Zones", description:"Tap to open"
-            href "pageArmingOptions", title:"Arming/Disarming Options", description:"Tap to open"
-            href "pageAlarmOptions", title:"Alarm Options", description:"Tap to open"
-            href "pageNotifications", title:"Notification Options", description:"Tap to open"
-            href "pageRemoteOptions", title:"Remote Control Options", description:"Tap to open"
-            href "pageRestApiOptions", title:"REST API Options", description:"Tap to open"
-            href "pageAbout", title:"About Smart Alarm", description:"Tap to open"
+        section("Opciones Alarma") {
+            href "pageSensores", title:"Selecciona los sensores", description:"Toca para abrir"
+            href "pageOpcionesArmado", title:"Opciones de armado", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Opciones de alarma", description:"Toca para abrir"
         }
-        section([title:"Options", mobileOnly:true]) {
-            label title:"Assign a name", required:false
+        section([title:"Opciones", mobileOnly:true]) {
+            label title:"Asigna un nombre", required:false
         }
     }
 }
-
-// Show "Status" page
-def pageStatus() {
-    LOG("pageStatus()")
-
-    def pageProperties = [
-        name:       "pageStatus",
-        //title:      "Status",
-        nextPage:   "pageSetup",
-        uninstall:  false
-    ]
-
-    return dynamicPage(pageProperties) {
-        section("Status") {
-            paragraph "Alarm is ${getAlarmStatus()}"
-        }
-
-        if (settings.z_contact) {
-            section("Contact Sensors") {
-                settings.z_contact.each() {
-                    def text = getZoneStatus(it, "contact")
-                    if (text) {
-                        paragraph text
-                    }
-                }
-            }
-        }
-
-        if (settings.z_motion) {
-            section("Motion Sensors") {
-                settings.z_motion.each() {
-                    def text = getZoneStatus(it, "motion")
-                    if (text) {
-                        paragraph text
-                    }
-                }
-            }
-        }
-
-        if (settings.z_movement) {
-            section("Movement Sensors") {
-                settings.z_movement.each() {
-                    def text = getZoneStatus(it, "acceleration")
-                    if (text) {
-                        paragraph text
-                    }
-                }
-            }
-        }
-
-        if (settings.z_smoke) {
-            section("Smoke & CO Sensors") {
-                settings.z_smoke.each() {
-                    def text = getZoneStatus(it, "smoke")
-                    if (text) {
-                        paragraph text
-                    }
-                }
-            }
-        }
-
-        if (settings.z_water) {
-            section("Moisture Sensors") {
-                settings.z_water.each() {
-                    def text = getZoneStatus(it, "water")
-                    if (text) {
-                        paragraph text
-                    }
-                }
-            }
-        }
-    }
-}
-
-// Show "History" page
-def pageHistory() {
-    LOG("pageHistory()")
-
-    def pageProperties = [
-        name:       "pageHistory",
-        //title:      "Event History",
-        nextPage:   "pageSetup",
-        uninstall:  false
-    ]
-
-    def history = atomicState.history
-
-    return dynamicPage(pageProperties) {
-        section("Event History") {
-            if (history.size() == 0) {
-                paragraph "No history available."
-            } else {
-                paragraph "Not implemented"
-            }
-        }
-    }
-}
-
-// Show "Add/Remove Zones" page
-def pageSelectZones() {
-    LOG("pageSelectZones()")
-
-    def helpPage =
-        "A security zone is an area of your property protected by a sensor " +
-        "(contact, motion, movement, moisture or smoke)."
-
+// Selecciona los sensores, define puerta principal y delay.
+def pageSensores() {
+    LOG("pageSensores()")
+    def resumen =
+        "Cada sensor se puede configurar como Afuera o En Casa. " +
+        "El armado En Casa considera que puede haber movimiento dentro de la  " +
+        "casa sin generar una activacion de alarma. " +
+        "Cuando la alarma se arma como Afuera, se activan los sensores Afuera y En Casa"
+    
     def inputContact = [
-        name:       "z_contact",
+        name:       "contacto",
         type:       "capability.contactSensor",
-        title:      "Which contact sensors?",
+        title:      "Cuales sensores de puerta/ventana?",
         multiple:   true,
         required:   false
     ]
-
     def inputMotion = [
-        name:       "z_motion",
+        name:       "movimiento",
         type:       "capability.motionSensor",
-        title:      "Which motion sensors?",
+        title:      "Cuales sensores de movimiento?",
         multiple:   true,
         required:   false
     ]
-
-    def inputMovement = [
-        name:       "z_movement",
-        type:       "capability.accelerationSensor",
-        title:      "Which movement sensors?",
-        multiple:   true,
-        required:   false
-    ]
-
-    def inputSmoke = [
-        name:       "z_smoke",
-        type:       "capability.smokeDetector",
-        title:      "Which smoke & CO sensors?",
-        multiple:   true,
-        required:   false
-    ]
-
-    def inputMoisture = [
-        name:       "z_water",
-        type:       "capability.waterSensor",
-        title:      "Which moisture sensors?",
-        multiple:   true,
-        required:   false
-    ]
-
     def pageProperties = [
-        name:       "pageSelectZones",
-        //title:      "Add/Remove Zones",
-        nextPage:   "pageConfigureZones",
+        name:       "pageSensores",
+        nextPage:   "pageOpcionesArmado",
         uninstall:  false
     ]
-
+    def tipoArmado = ["Afuera", "enCasa"]
     return dynamicPage(pageProperties) {
-        section("Add/Remove Zones") {
-            paragraph helpPage
+        section("Agrega/remueve sensores...") {
+            paragraph resumen
             input inputContact
             input inputMotion
-            input inputMovement
-            input inputSmoke
-            input inputMoisture
         }
     }
 }
 
-// Show "Configure Zones" page
-def pageConfigureZones() {
-    LOG("pageConfigureZones()")
 
-    def helpZones =
-        "Security zones can be configured as either Exterior, Interior, " +
-        "Alert or Bypass. Exterior zones are armed in both Away and Stay " +
-        "modes, while Interior zones are armed only in Away mode, allowing " +
-        "you to move freely inside the premises while the alarm is armed " +
-        "in Stay mode. Alert zones are always armed and are typically used " +
-        "for smoke and flood alarms. Bypass zones are never armed. This " +
-        "allows you to temporarily exclude a zone from your security " +
-        "system.\n\n" +
-        "You can disable Entry and Exit Delays for individual zones."
+def pageOpcionesArmado() {
+    LOG("pageOpcionesArmado()")
 
-    def zoneTypes = ["exterior", "interior", "alert", "bypass"]
+    
+        
+    
 
     def pageProperties = [
-        name:       "pageConfigureZones",
-        //title:      "Configure Zones",
+        name:       "pageOpcionesArmado",
         nextPage:   "pageSetup",
         uninstall:  false
     ]
