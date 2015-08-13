@@ -58,7 +58,7 @@ def pageSetup() {
         uninstall:  true
     ]
 
-    return dynamicPage(pageProperties) {
+    return dynamicPage(name: "PageSetup", uninstall: true) {
         section("Opciones Alarma...") {
             href "pageSensores", title:"Selecciona los sensores", description:"Toca para abrir..."
             href "pageOpcionesSensor", title:"Selecciona tipo de armado para los sensores", description:"Toca para abrir..."
