@@ -39,89 +39,26 @@ definition(
 )
 
 preferences {
+    page name:"pageSetup"
     page name:"pageSensores"
-    //page name:"pageAbout"
-    //page name:"pageUninstall"
     page name:"pageEstado"
-    //page name:"pageHistory"
-    //page name:"pageSelectZones"
-    //page name:"pageConfigureZones"
     page name:"pageOpcionesArmado"
     page name:"pageOpcionesAlarma"
-    //page name:"pageNotifications"
-    //page name:"pageRemoteOptions"
-    //page name:"pageRestApiOptions"
 }
 
-mappings {
-    path("/armaway") {
-        action: [ GET: "apiArmAway" ]
-    }
-
-    path("/armaway/:pincode") {
-        action: [ GET: "apiArmAway" ]
-    }
-
-    path("/armstay") {
-        action: [ GET: "apiArmStay" ]
-    }
-
-    path("/armstay/:pincode") {
-        action: [ GET: "apiArmStay" ]
-    }
-
-    path("/disarm") {
-        action: [ GET: "apiDisarm" ]
-    }
-
-    path("/disarm/:pincode") {
-        action: [ GET: "apiDisarm" ]
-    }
-
-    path("/panic") {
-        action: [ GET: "apiPanic" ]
-    }
-
-    path("/status") {
-        action: [ GET: "apiStatus" ]
-    }
-}
-
-// Show setup page
+// Pagina de seteo
 def pageSetup() {
-    LOG("pageSetup()")
-
-    if (state.version != getVersion()) {
-        return setupInit() ? pageAbout() : pageUninstall()
-    }
-
-    if (getNumZones() == 0) {
-        return pageSelectZones()
-    }
-
-    def alarmStatus = "Alarm is ${getAlarmStatus()}"
-
+    log.debug("pageSetup()")
     def pageProperties = [
-        name:       "pageSetup",
-        //title:      "Status",
+        name:       "pageSetup"
         nextPage:   null,
         install:    true,
-        uninstall:  state.installed
+        uninstall:  true
     ]
 
     return dynamicPage(pageProperties) {
-        section("Status") {
-            if (state.zones.size() > 0) {
-                href "pageStatus", title:alarmStatus, description:"Tap for more information"
-            } else {
-                paragraph alarmStatus
-            }
-            if (state.history.size() > 0) {
-                href "pageHistory", title:"Event History", description:"Tap to view"
-            }
-        }
-        section("Setup Menu") {
-            href "pageSelectZones", title:"Add/Remove Zones", description:"Tap to open"
+        section("Opciones") {
+            href "pageSensores", title:"Add/Remove Zones", description:"Tap to open"
             href "pageConfigureZones", title:"Configure Zones", description:"Tap to open"
             href "pageArmingOptions", title:"Arming/Disarming Options", description:"Tap to open"
             href "pageAlarmOptions", title:"Alarm Options", description:"Tap to open"
@@ -132,67 +69,6 @@ def pageSetup() {
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
-        }
-    }
-}
-
-// Show "About" page
-def pageAbout() {
-    LOG("pageAbout()")
-
-    def textAbout =
-        "Version ${getVersion()}\n${textCopyright()}\n\n" +
-        "You can contribute to the development of this app by making " +
-        "donation to geko@statusbits.com via PayPal."
-
-    def hrefInfo = [
-        url:        "http://statusbits.github.io/smartalarm/",
-        style:      "embedded",
-        title:      "Tap here for more information...",
-        description:"http://statusbits.github.io/smartalarm/",
-        required:   false
-    ]
-
-    def pageProperties = [
-        name:       "pageAbout",
-        //title:      "About",
-        nextPage:   "pageSetup",
-        uninstall:  false
-    ]
-
-    return dynamicPage(pageProperties) {
-        section("About") {
-            paragraph textAbout
-            href hrefInfo
-        }
-        section("License") {
-            paragraph textLicense()
-        }
-    }
-}
-
-// Show "Uninstall" page
-def pageUninstall() {
-    LOG("pageUninstall()")
-
-    def text =
-        "Smart Alarm version ${getVersion()} is not backward compatible " +
-        "with the currently installed version. Please uninstall the " +
-        "current version by tapping the Uninstall button below, then " +
-        "re-install Smart Alarm from the Dashboard. We are sorry for the " +
-        "inconvenience."
-
-    def pageProperties = [
-        name:       "pageUninstall",
-        title:      "Warning!",
-        nextPage:   null,
-        uninstall:  true,
-        install:    false
-    ]
-
-    return dynamicPage(pageProperties) {
-        section("Uninstall Required") {
-            paragraph text
         }
     }
 }
