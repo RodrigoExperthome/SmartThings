@@ -40,36 +40,12 @@ definition(
 )
 
 preferences {
-    page name:"pageSetup" //Seteo general de la app
-    page name:"pageSensores" //Sensores a seleccionar
-    page name:"pageOpcionesSensor" //Tipo de armado para cada sensor
-    page name:"pageOpcionesActivacion" //Formas de armar/desarmar 
-    page name:"pageOpcionesAlarma" //Acciones a realizar en caso de activación alarma
-    //page name:"pageEstado"
+    page name:"pageSensores" 
+    page name:"pageOpcionesSensor" 
+    page name:"pageOpcionesActivacion"
+    page name:"pageOpcionesAlarma" 
 }
 
-// Pagina de seteo
-def pageSetup() {
-    log.debug("pageSetup()")
-    def pageProperties = [
-        name:       "pageSetup"
-        nextPage:   null,
-        install:    true,
-        uninstall:  true
-    ]
-
-    return dynamicPage(name: "PageSetup", uninstall: true) {
-        section("Opciones Alarma...") {
-            href "pageSensores", title:"Selecciona los sensores", description:"Toca para abrir..."
-            href "pageOpcionesSensor", title:"Selecciona tipo de armado para los sensores", description:"Toca para abrir..."
-            href "pageOpcionesActivacion", title:"Formas de activar/desactivar la alarma", description:"Toca para abrir..."
-            href "pageOpcionesAlarma", title:"Acciones a realizar en caso a de alarma ", description:"Toca para abrir..."
-        }
-        section([title:"Opciones", mobileOnly:true]) {
-            label title:"Asigna un nombre", required:false
-        }
-    }
-}
 def pageSensores() {
     log.debug("pageSensores()")
     def resumen =
@@ -101,7 +77,6 @@ def pageSensores() {
         }
     }
 }
-
 def pageOpcionesSensor() {
     log.debug("pageOpcionesSensor()")
     def resumen = 
@@ -111,7 +86,7 @@ def pageOpcionesSensor() {
         "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y En Casa."
     def pageProperties = [
         name:       "pageOpcionesSensor",
-        nextPage:   "pageSetup",
+        nextPage:   "pageOpcionesActivacion",
         uninstall:  false
     ]
     def tipoSensor = ["Afuera", "enCasa"]
@@ -194,7 +169,7 @@ def pageOpcionesActivacion() {
     ]
     def pageProperties = [
         name:       "pageOpcionesActivacion",
-        nextPage:   "pageSetup",
+        nextPage:   "pageOpcionesAlarma",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -263,8 +238,7 @@ def pageOpcionesAlarma() {
     ]
     def pageProperties = [
         name:       "pageOpcionesAlarma",
-        nextPage:   "pageSetup",
-        uninstall:  false
+        uninstall:  true
     ]
 
     return dynamicPage(pageProperties) {
