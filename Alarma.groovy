@@ -40,11 +40,12 @@ definition(
 )
 
 preferences {
-    page name:"pageSetup"
-    page name:"pageSensores"
+    page name:"pageSetup" //Seteo general de la app
+    page name:"pageSensores" //Sensores a seleccionar
+    page name:"pageOpcionesSensor" //Tipo de armado para cada sensor
+    page name:"pageOpcionesArmado" //Formas de armar/desarmar 
+    page name:"pageOpcionesAlarma" //Acciones a realizar en caso de activación alarma
     page name:"pageEstado"
-    page name:"pageOpcionesArmado"
-    page name:"pageOpcionesAlarma"
 }
 
 // Pagina de seteo
@@ -72,10 +73,7 @@ def pageSetup() {
 def pageSensores() {
     LOG("pageSensores()")
     def resumen =
-        "Cada sensor se puede configurar como Afuera o En Casa. " +
-        "El armado En Casa considera que puede haber movimiento dentro de la  " +
-        "casa sin generar una activacion de alarma. " +
-        "Cuando la alarma se arma como Afuera, se activan los sensores Afuera y En Casa"
+        "Seleccion de sensores a monitorear"
     
     def inputContact = [
         name:       "contacto",
@@ -93,10 +91,9 @@ def pageSensores() {
     ]
     def pageProperties = [
         name:       "pageSensores",
-        nextPage:   "pageOpcionesArmado",
+        nextPage:   "pageOpcionesSensor",
         uninstall:  false
     ]
-    def tipoArmado = ["Afuera", "enCasa"]
     return dynamicPage(pageProperties) {
         section("Agrega/remueve sensores...") {
             paragraph resumen
@@ -106,82 +103,50 @@ def pageSensores() {
     }
 }
 
-
-def pageOpcionesArmado() {
-    LOG("pageOpcionesArmado()")
-
-    
-        
-    
-
+def pageOpcionesSensor() {
+    LOG("pageOpcionesSensor()")
+    def resumen = 
+        "Cada sensor se puede configurar como Afuera o En Casa. " +
+        "El armado En Casa considera que puede haber movimiento dentro de la  " +
+        "casa sin generar una activacion de alarma. " +
+        "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y En Casa"
     def pageProperties = [
-        name:       "pageOpcionesArmado",
+        name:       "pageOpcionesSensor",
         nextPage:   "pageSetup",
         uninstall:  false
     ]
-
+    def tipoSensor = ["Afuera", "enCasa"]
     return dynamicPage(pageProperties) {
-        section("Configure Zones") {
-            paragraph helpZones
+        section("Definir Opción Sensor") {
+            paragraph resumen
         }
-
-        if (settings.z_contact) {
-            def devices = settings.z_contact.sort {it.displayName}
+        if (settings.contacto) {
+            def devices = settings.contacto.sort {it.displayName}
             devices.each() {
                 def devId = it.id
-                section("${it.displayName} (contact)") {
-                    input "type_${devId}", "enum", title:"Zone Type", metadata:[values:zoneTypes], defaultValue:"exterior"
-                    input "delay_${devId}", "bool", title:"Entry/Exit Delays", defaultValue:true
+                section("${it.displayName} (contacto)") {
+                    input "type_${devId}", "enum", title:"Armado...", metadata:[values:tipoSensor], defaultValue:"Afuera"
                 }
             }
         }
 
-        if (settings.z_motion) {
-            def devices = settings.z_motion.sort {it.displayName}
+        if (settings.movimiento) {
+            def devices = settings.movimiento.sort {it.displayName}
             devices.each() {
                 def devId = it.id
-                section("${it.displayName} (motion)") {
-                    input "type_${devId}", "enum", title:"Zone Type", metadata:[values:zoneTypes], defaultValue:"interior"
-                    input "delay_${devId}", "bool", title:"Entry/Exit Delays", defaultValue:false
+                section("${it.displayName} (movimiento)") {
+                    input "type_${devId}", "enum", title:"Armado...", metadata:[values:tipoSensor],defaultValue:"enCasa"
                 }
             }
         }
-
-        if (settings.z_movement) {
-            def devices = settings.z_movement.sort {it.displayName}
-            devices.each() {
-                def devId = it.id
-                section("${it.displayName} (movement)") {
-                    input "type_${devId}", "enum", title:"Zone Type", metadata:[values:zoneTypes], defaultValue:"interior"
-                    input "delay_${devId}", "bool", title:"Entry/Exit Delays", defaultValue:false
-                }
-            }
+        section("Definir Puerta Principal...") {
+            input "inputPuerta","capability.contactSensor", title:"Puerta Principal", multiple:true, required: true
+            input "inputDelay", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
         }
+    }    
+}        
 
-        if (settings.z_smoke) {
-            def devices = settings.z_smoke.sort {it.displayName}
-            devices.each() {
-                def devId = it.id
-                section("${it.displayName} (smoke)") {
-                    input "type_${devId}", "enum", title:"Zone Type", metadata:[values:zoneTypes], defaultValue:"alert"
-                    input "delay_${devId}", "bool", title:"Entry/Exit Delays", defaultValue:false
-                }
-            }
-        }
-
-        if (settings.z_water) {
-            def devices = settings.z_water.sort {it.displayName}
-            devices.each() {
-                def devId = it.id
-                section("${it.displayName} (moisture)") {
-                    input "type_${devId}", "enum", title:"Zone Type", metadata:[values:zoneTypes], defaultValue:"alert"
-                    input "delay_${devId}", "bool", title:"Entry/Exit Delays", defaultValue:false
-                }
-            }
-        }
-    }
-}
-
+/**
 // Show "Arming/Disarming Options" page
 def pageArmingOptions() {
     LOG("pageArmingOptions()")
@@ -686,74 +651,10 @@ def pageRemoteOptions() {
     }
 }
 
-// Show "REST API Options" page
-def pageRestApiOptions() {
-    LOG("pageRestApiOptions()")
-
-    def textHelp =
-        "Smart Alarm can be controlled remotely by any Web client using " +
-        "REST API. Please refer to Smart Alarm documentation for more " +
-        "information."
-
-    def textPincode =
-        "You can specify optional PIN code to protect arming and disarming " +
-        "Smart Alarm via REST API from unauthorized access. If set, the " +
-        "PIN code is always required for disarming Smart Alarm, however " +
-        "you can optionally turn it off for arming Smart Alarm."
-
-    def inputRestApi = [
-        name:           "restApiEnabled",
-        type:           "bool",
-        title:          "Enable REST API",
-        defaultValue:   false
-    ]
-
-    def inputPincode = [
-        name:           "pincode",
-        type:           "number",
-        title:          "PIN Code",
-        required:       false
-    ]
-
-    def inputArmWithPin = [
-        name:           "armWithPin",
-        type:           "bool",
-        title:          "Require PIN code to arm",
-        defaultValue:   true
-    ]
-
-    def pageProperties = [
-        name:       "pageRestApiOptions",
-        //title:      "REST API Options",
-        nextPage:   "pageSetup",
-        uninstall:  false
-    ]
-
-    return dynamicPage(pageProperties) {
-        section("REST API Options") {
-            paragraph textHelp
-            input inputRestApi
-        }
-
-        section("PIN Code") {
-            paragraph textPincode
-            input inputPincode
-            input inputArmWithPin
-        }
-
-        if (isRestApiEnabled()) {
-            section("REST API Info") {
-                paragraph "App ID:\n${app.id}"
-                paragraph "Access Token:\n${state.accessToken}"
-            }
-        }
-    }
-}
-
+*/
 def installed() {
     LOG("installed()")
-
-    initialize()
+    //initialize()
     state.installed = true
 }
 
@@ -762,9 +663,10 @@ def updated() {
 
     unschedule()
     unsubscribe()
-    initialize()
+    //initialize()
 }
 
+/**
 private def setupInit() {
     LOG("setupInit()")
 
@@ -957,23 +859,9 @@ private def initButtons() {
     }
 }
 
-private def initRestApi() {
-    if (settings.restApiEnabled) {
-        if (!state.accessToken) {
-            def token = createAccessToken()
-            LOG("Created new access token: ${token})")
-        }
-        state.url = "https://graph.api.smartthings.com/api/smartapps/installations/${app.id}/"
-        log.info "REST API enabled"
-    } else {
-        state.url = ""
-        log.info "REST API disabled"
-    }
-}
 
-private def isRestApiEnabled() {
-    return settings.restApiEnabled && state.accessToken
-}
+
+
 
 def onContact(evt)  { onZoneEvent(evt, "contact") }
 def onMotion(evt)   { onZoneEvent(evt, "motion") }
