@@ -78,16 +78,16 @@ def pageSensores() {
 def pageOpcionesSensor() {
     log.debug("pageOpcionesSensor()")
     def resumen = 
-        "Cada sensor se puede configurar como Afuera o En Casa. " +
-        "El armado En Casa considera que puede haber movimiento dentro de la  " +
+        "Cada sensor se puede configurar como Afuera o Casa. " +
+        "El armado Casa considera que puede haber movimiento dentro de la  " +
         "casa sin generar una activacion de alarma. " +
-        "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y En Casa."
+        "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y Casa."
     def pageProperties = [
         name:       "pageOpcionesSensor",
         nextPage:   "pageOpcionesActivacion",
         uninstall:  false
     ]
-    def tipoSensor = ["Afuera", "enCasa"]
+    def tipoSensor = ["Afuera", "Casa"]
     return dynamicPage(pageProperties) {
         section("Sensores") {
             paragraph resumen
@@ -124,7 +124,8 @@ def pageOpcionesActivacion() {
         "Expert Alarm se puede instalar via keypad-switch virtuales (android + tasker)," +
         "control remoto y cambio de modo (solo para activacion Afuera)."
     def resumenRemotos =    
-        "Control remoto por default define botones [1:Afuera, 2:enCasa, 3:Desactivar, 4:Panico]"
+        "Control remoto por default define botones " +
+        "(1)Afuera, (2)Casa, (3)Desactivar, (4)Panico"
     def resumenSwitch =    
         "Solo para ser usados por switch virtuales"    
     def inputModoAfuera = [
@@ -279,11 +280,6 @@ def pageStatus() {
         section("Status") {
             paragraph alarmStatus
         }
-        page name:"pageSensores" 
-        page name:"pageOpcionesSensor" 
-        page name:"pageOpcionesActivacion"
-        page name:"pageOpcionesAlarma" 
-        page name:"pageStatus"
         section("Setup Menu") {
             href "pageSensores", title:"Add/Remove Zones", description:"Tap to open"
             href "pageOpcionesSensor", title:"Configure Zones", description:"Tap to open"
