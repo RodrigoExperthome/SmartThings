@@ -97,20 +97,17 @@ def pageOpcionesSensor() {
             def devices = settings.contacto.sort {it.displayName}
             devices.each() {
                 def devId = it.id
-                section() {
-                    input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor], defaultValue:"Afuera"
-                }
+                def displayName = it.displayName
+                input "type_${devId}", "enum", title:displayName, metadata:[values:tipoSensor], defaultValue:"Afuera"
             }
         }
-
         if (settings.movimiento) {
             section("Sensores Movimiento")
             def devices = settings.movimiento.sort {it.displayName}
             devices.each() {
                 def devId = it.id
-                section("${it.displayName} (movimiento)") {
+                def displayName = it.displayName
                     input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor],defaultValue:"enCasa"
-                }
             }
         }
         section("Definir Puerta Principal...") {
