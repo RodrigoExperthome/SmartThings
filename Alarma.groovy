@@ -240,7 +240,7 @@ def pageOpcionesAlarma() {
     ]
     def pageProperties = [
         name:       "pageOpcionesAlarma",
-        nextPage:   "pageStatus"
+        nextPage:   "pageStatus",
         uninstall:  true
     ]
 
