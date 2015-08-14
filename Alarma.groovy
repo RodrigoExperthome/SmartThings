@@ -78,9 +78,9 @@ def pageSensores() {
 def pageOpcionesSensor() {
     log.debug("pageOpcionesSensor()")
     def resumen = 
-        "Cada sensor se puede configurar como Afuera o Casa. " +
-        "El armado Casa considera que puede haber movimiento dentro de la  " +
-        "casa sin generar una activacion de alarma. " +
+        "Cada sensor se puede configurar como Afuera o Casa." +
+        "El armado Casa considera que puede haber movimiento dentro de la " +
+        "casa sin generar una activacion de alarma." +
         "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y Casa."
     def pageProperties = [
         name:       "pageOpcionesSensor",
@@ -121,11 +121,13 @@ def pageOpcionesSensor() {
 def pageOpcionesActivacion() {
     log.debug("pageOpcionesActivacion()")
     def resumen =
-        "Expert Alarm se puede instalar via keypad-switch virtuales (android + tasker)," +
-        "control remoto y cambio de modo (solo para activacion Afuera)."
+        "Expert Alarm se puede instalar via:" +
+        "(i) android keypad (tasker)," +
+        "(ii) control remoto y," +
+        "(iii) cambio de modo (solo para activacion Afuera)."
     def resumenRemotos =    
         "Control remoto por default define botones " +
-        "(1)Afuera, (2)Casa, (3)Desactivar, (4)Panico"
+        "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
     def resumenSwitch =    
         "Solo para ser usados por switch virtuales"    
     def inputModoAfuera = [
@@ -198,9 +200,10 @@ def pageOpcionesActivacion() {
 def pageOpcionesAlarma() {
     log.debug("pageOpcionesAlarma()")
     def resumen =
-        "Acciones a realizar despues de una activación " +
+        "Acciones a realizar despues de una activación." +
         "Incluye sirenas, luces, fotos, y notificaciones. " +
-        "Notificaciones push (activacion & cambio estado) se envian de manera automatica."
+        "Notificaciones push (activacion & cambio estado) " +
+        "se envian de manera automatica."
     def inputSirena = [
         name:           "sirena",
         type:           "capability.alarm",
