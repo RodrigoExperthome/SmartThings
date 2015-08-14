@@ -44,23 +44,22 @@ preferences {
     page name:"pageOpcionesSensor" 
     page name:"pageOpcionesActivacion"
     page name:"pageOpcionesAlarma" 
+    page name: "pageStatus"
 }
 
 def pageSensores() {
     log.debug("pageSensores()")
-    def resumen =
-        "Seleccion de sensores a monitorear"
     def inputContact = [
         name:       "contacto",
         type:       "capability.contactSensor",
-        title:      "Cuales sensores de puerta/ventana?",
+        title:      "Sensores de puerta/ventana",
         multiple:   true,
         required:   false
     ]
     def inputMotion = [
         name:       "movimiento",
         type:       "capability.motionSensor",
-        title:      "Cuales sensores de movimiento?",
+        title:      "Sensores de movimiento",
         multiple:   true,
         required:   false
     ]
@@ -71,7 +70,6 @@ def pageSensores() {
     ]
     return dynamicPage(pageProperties) {
         section("Agrega/remueve sensores...") {
-            paragraph resumen
             input inputContact
             input inputMotion
         }
@@ -91,25 +89,27 @@ def pageOpcionesSensor() {
     ]
     def tipoSensor = ["Afuera", "enCasa"]
     return dynamicPage(pageProperties) {
-        section("Opcion Sensor") {
+        section("Sensores") {
             paragraph resumen
         }
         if (settings.contacto) {
+            section("Sensores Contacto")
             def devices = settings.contacto.sort {it.displayName}
             devices.each() {
                 def devId = it.id
-                section("${it.displayName} (contacto)") {
-                    input "type_${devId}", "enum", title:"Armado...", metadata:[values:tipoSensor], defaultValue:"Afuera"
+                section() {
+                    input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor], defaultValue:"Afuera"
                 }
             }
         }
 
         if (settings.movimiento) {
+            section("Sensores Movimiento")
             def devices = settings.movimiento.sort {it.displayName}
             devices.each() {
                 def devId = it.id
                 section("${it.displayName} (movimiento)") {
-                    input "type_${devId}", "enum", title:"Armado...", metadata:[values:tipoSensor],defaultValue:"enCasa"
+                    input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor],defaultValue:"enCasa"
                 }
             }
         }
@@ -123,8 +123,11 @@ def pageOpcionesActivacion() {
     log.debug("pageOpcionesActivacion()")
     def resumen =
         "Expert Alarm se puede instalar via keypad-switch virtuales (android + tasker)," +
-        "control remoto y cambio de modo (solo para activacion Afuera)." +
+        "control remoto y cambio de modo (solo para activacion Afuera)."
+    def resumenRemotos =    
         "Control remoto por default define botones [1:Afuera, 2:enCasa, 3:Desactivar, 4:Panico]"
+    def resumenSwitch =    
+        "Solo para ser usados por switch virtuales"    
     def inputModoAfuera = [
         name:       "modosAfuera",
         type:       "mode",
@@ -180,9 +183,11 @@ def pageOpcionesActivacion() {
             input inputModoAfuera
         }
         section("Controles Remotos") {
+           paragraph resumenRemotos
            input inputRemotes
         }
         section("Switch Virtual") {
+           paragraph resumenSwitch
            input inputSwitchAfuera
            input inputSwitchEnCasa
            input inputSwitchDesactivar
