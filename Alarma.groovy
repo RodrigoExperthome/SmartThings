@@ -78,37 +78,39 @@ def pageSensores() {
 def pageOpcionesSensor() {
     log.debug("pageOpcionesSensor()")
     def resumen = 
-        "Cada sensor se puede configurar como Afuera o En Casa. " +
-        "El armado En Casa considera que puede haber movimiento dentro de la  " +
+        "Cada sensor se puede configurar como Afuera o Casa. " +
+        "El armado En Casa permite que puede haber movimiento dentro de la  " +
         "casa sin generar una activacion de alarma. " +
-        "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y En Casa."
+        "Cuando la alarma se arma en modo Afuera, todos los sensores (Afuera y Casa) se activan."
     def pageProperties = [
         name:       "pageOpcionesSensor",
         nextPage:   "pageOpcionesActivacion",
         uninstall:  false
     ]
-    def tipoSensor = ["Afuera", "enCasa"]
+    def tipoSensor = ["Afuera", "Casa"]
     return dynamicPage(pageProperties) {
         section("Sensores") {
             paragraph resumen
         }
         if (settings.contacto) {
-            section("Sensores Contacto")
-            def devices = settings.contacto.sort {it.displayName}
-            devices.each() {
-                def devId = it.id
-                def displayName = it.displayName
-                input "type_${devId}", "enum", title:displayName, metadata:[values:tipoSensor], defaultValue:"Afuera"
+            section("Sensores Contacto") {
+                def devices = settings.contacto.sort {it.displayName}
+                devices.each() {
+                    def devId = it.id
+                    def displayName = it.displayName
+                    input "type_${devId}", "enum", title:displayName, metadata:[values:tipoSensor], defaultValue:"Afuera"
+                }
             }
         }
         if (settings.movimiento) {
-            section("Sensores Movimiento")
-            def devices = settings.movimiento.sort {it.displayName}
-            devices.each() {
-                def devId = it.id
-                def displayName = it.displayName
+            section("Sensores Movimiento") {
+                def devices = settings.movimiento.sort {it.displayName}
+                devices.each() {
+                    def devId = it.id
+                    def displayName = it.displayName
                     input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor],defaultValue:"enCasa"
-            }
+                }
+            }        
         }
         section("Definir Puerta Principal...") {
             input "inputPuerta","capability.contactSensor", title:"Puerta Principal", multiple:true, required: true
