@@ -1,5 +1,5 @@
-**
-     /*  Magic Home
+
+     /**  Magic Home
      *
      *  Copyright 2014 Tim Slagle
      *
