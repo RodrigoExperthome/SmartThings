@@ -297,14 +297,9 @@ def pageOpcionesAlarma() {
     }
 }
 
-
-
-
-
 def installed() {
     log.debug("installed()")
     initialize()
-    state.installed = true
 }
 
 def updated() {
@@ -315,7 +310,18 @@ def updated() {
 }
 
 private def initialize() {
-
+    //Seteo de variables globales
+    //Estado alarma es Desarmado.
+    state.afuera = false
+    state.casa = false
+    state.panico = false
+    state.desarmado = true
+    //Estado alarma es Desarmado.
+    
+    
+    //Hay que popular variable con sensores
+    
+    
     
 }
     
