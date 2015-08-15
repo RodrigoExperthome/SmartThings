@@ -40,11 +40,37 @@ definition(
 )
 
 preferences {
+    page name:"pageStatus"
     page name:"pageSensores" 
     page name:"pageOpcionesSensor" 
     page name:"pageOpcionesActivacion"
     page name:"pageOpcionesAlarma" 
-    page name:"pageStatus"
+    
+}
+
+def pageStatus() {
+    def alarmStatus = "La alarma esta Activada Afuera"
+    //def alarmStatus = "Alarm is ${getAlarmStatus()}"
+    def pageProperties = [
+        name:       "pageStatus",
+        nextPage:   null,
+        install:    true,
+        uninstall:  true
+    ]
+    return dynamicPage(pageProperties) {
+        section("Estado") {
+            paragraph alarmStatus
+        }
+        section("Setup Menu") {
+            href "pageSensores", title:"Selecciona sensores", description:"Toca para abrir"
+            href "pageOpcionesSensor", title:"Configura activacion", description:"Toca para abrir"
+            href "pageOpcionesActivacion", title:"Opciones de activacion", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Opciones de alarma", description:"Toca para abrir"
+        }
+        section([title:"Options", mobileOnly:true]) {
+            label title:"Assign a name", required:false
+        }
+    }
 }
 
 def pageSensores() {
@@ -65,7 +91,7 @@ def pageSensores() {
     ]
     def pageProperties = [
         name:       "pageSensores",
-        nextPage:   "pageOpcionesSensor",
+        nextPage:   "pageStatus",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -84,7 +110,7 @@ def pageOpcionesSensor() {
         "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y Casa."
     def pageProperties = [
         name:       "pageOpcionesSensor",
-        nextPage:   "pageOpcionesActivacion",
+        nextPage:   "pageStatus",
         uninstall:  false
     ]
     def tipoSensor = ["Afuera", "Casa"]
@@ -174,7 +200,7 @@ def pageOpcionesActivacion() {
     ]
     def pageProperties = [
         name:       "pageOpcionesActivacion",
-        nextPage:   "pageOpcionesAlarma",
+        nextPage:   "pageStatus",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -271,29 +297,7 @@ def pageOpcionesAlarma() {
     }
 }
 
-def pageStatus() {
-    def alarmStatus = "La alarma esta Activada Afuera"
-    //def alarmStatus = "Alarm is ${getAlarmStatus()}"
-    def pageProperties = [
-        name:       "pageStatus",
-        nextPage:   null,
-        uninstall:  true
-    ]
-    return dynamicPage(pageProperties) {
-        section("Status") {
-            paragraph alarmStatus
-        }
-        section("Setup Menu") {
-            href "pageSensores", title:"Add/Remove Zones", description:"Tap to open"
-            href "pageOpcionesSensor", title:"Configure Zones", description:"Tap to open"
-            href "pageOpcionesActivacion", title:"Arming/Disarming Options", description:"Tap to open"
-            href "pageOpcionesAlarma", title:"Alarm Options", description:"Tap to open"
-        }
-        section([title:"Options", mobileOnly:true]) {
-            label title:"Assign a name", required:false
-        }
-    }
-}
+
 
 
 
