@@ -316,12 +316,9 @@ private def initialize() {
     state.casa = false
     state.panico = false
     state.desarmado = true
-    //Estado alarma es Desarmado.
-    
-    
-    //Hay que popular variable con sensores
-    
-    
+    //Estado de activacion de alarma
+    state.alarma = false
+    state.desconectada = false
     
 }
     
