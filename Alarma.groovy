@@ -3,7 +3,7 @@
  *
  *  Version 1.0.0 (8/12/2015)
  *  Inspired in SmartAlarm by statusbits, but recoded to simplify logics, and enable 
- *  better integration with ExpertHome alarm system solution (includes Android Tasker Keypad)
+ *  better integration with Android Tasker Keypad
  *
  *  The latest version of this file can be found on GitHub at:
  *  --------------------------------------------------------------------------
@@ -139,7 +139,7 @@ def pageOpcionesSensor() {
             }
         }
         section("Definir Puerta Principal...") {
-            input "inputPuerta","capability.contactSensor", title:"Puerta Principal", multiple:true, required: true
+            input "inputPuerta","capability.contactSensor", title:"Puerta Principal", multiple:true, required: false
             input "inputDelay", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
         }
     }    
@@ -148,8 +148,7 @@ def pageOpcionesActivacion() {
     log.debug("pageOpcionesActivacion()")
     def resumen =
         "Expert Alarm se puede instalar via:" +
-        "(i) android keypad (tasker)," +
-        "(ii) control remoto y," +
+        "(i) android keypad (tasker), (ii) control remoto y," +
         "(iii) cambio de modo (solo para activacion Afuera)."
     def resumenRemotos =    
         "Control remoto por default define botones " +
@@ -320,16 +319,25 @@ private def initialize() {
     state.alarma = false
     state.desconectada = false
     
+    //Mapeo sensores en state.sensor() y me suscribo a eventos de movimiento y apertura
+    sensores()
+    //Suscripcion a botones
+    controlRemoto()
+    //Suscripcion a switch virtual
+    switchVirtual()
+    
+    
+    
+    
 }
 
 //mapeo sensores y suscripcion
 private def sensores() {
     log.debug("sensores()")
-
     state.sensor = []
     state.sensor << [
         deviceId:   null,
-        tipoArmado:   "alert",
+        tipoArmado:   "Casa",
     ]
     if (settings.contacto) {
         settings.contacto.each() {
@@ -346,12 +354,49 @@ private def sensores() {
             state.zones << [
                 idSensor:   it.id,
                 tipoArmado:   settings["type_${it.id}"] ?: "Casa",
-               
             ]
         }
         subscribe(settings.movimiento, "motion.active", onAccion)
     }
-    
+}
+// Control remoto por default define botones (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico
+private def controlRemoto() {
+    log.debug("initButtons()")
+    if (state.buttonActions) {
+        subscribe(settings.remotes, "button", onButtonEvent)
+    }
 }
 
+private def switchVirtual() {
+    log.debug("switchVirtual()")
     
+    if (switchAfuera) {
+        suscribe(settings.switchAfuera,"switch",armadoAfuera)
+    }
+    if (switchEnCasa) {
+        suscribe(settings.switchEnCasa,"switch",armadoCasa)
+    }
+    if (switchDesactivar) {
+        suscribe(settings.switchDesactivar,"switch",armadoDesarmado)
+    }
+    if (switchPanico) {
+        suscribe(settings.switchPanico,"switch",armadoPanico)
+    }
+}
+
+
+    
+private def alarmaOk () {
+}
+private def armadoAfuera () {
+}
+private def armadoCasa () {
+}
+private def armadoDesarmado () {
+}
+private def armadoPanico () {
+}
+private def activarAlarma () {
+}
+private def desactivarAlarma () {
+}
