@@ -309,12 +309,8 @@ def updated() {
 }
 
 private def initialize() {
-    //Seteo de variables globales
     //Estado alarma es Desarmado al instalar la SmartApp
-    state.afuera = false
-    state.casa = false
-    state.panico = false
-    state.desarmado = true
+    
     //Estado de activacion de alarma
     state.alarma = false
     state.desconectada = false
@@ -370,16 +366,16 @@ private def controlRemoto() {
 private def switchVirtual() {
     log.debug("switchVirtual()")
     
-    if (switchAfuera) {
+    if (settings.switchAfuera) {
         suscribe(settings.switchAfuera,"switch",armadoAfuera)
     }
-    if (switchEnCasa) {
+    if (settings.switchEnCasa) {
         suscribe(settings.switchEnCasa,"switch",armadoCasa)
     }
-    if (switchDesactivar) {
+    if (settings.switchDesactivar) {
         suscribe(settings.switchDesactivar,"switch",armadoDesarmado)
     }
-    if (switchPanico) {
+    if (settings.switchPanico) {
         suscribe(settings.switchPanico,"switch",armadoPanico)
     }
 }
