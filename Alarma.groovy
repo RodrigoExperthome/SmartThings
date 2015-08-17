@@ -311,7 +311,7 @@ def updated() {
 
 private def initialize() {
     //Seteo de variables globales
-    //Estado alarma es Desarmado.
+    //Estado alarma es Desarmado al instalar la SmartApp
     state.afuera = false
     state.casa = false
     state.panico = false
@@ -321,4 +321,11 @@ private def initialize() {
     state.desconectada = false
     
 }
+
+//mapeo sensores y suscripcion
+private def sensores() {
+    
+    
+}
+
     
