@@ -324,7 +324,33 @@ private def initialize() {
 
 //mapeo sensores y suscripcion
 private def sensores() {
-    
+    log.debug("sensores()")
+
+    state.sensor = []
+    state.sensor << [
+        deviceId:   null,
+        tipoArmado:   "alert",
+    ]
+    if (settings.contacto) {
+        settings.contacto.each() {
+            state.sensor << [
+                idSensor:   it.id,
+                tipoArmado: settings["type_${it.id}"] ?: "Afuera",
+            ]
+        }
+        subscribe(settings.contacto, "contact.open", onAccion)
+    }
+
+    if (settings.movimiento) {
+        settings.movimiento.each() {
+            state.zones << [
+                idSensor:   it.id,
+                tipoArmado:   settings["type_${it.id}"] ?: "Casa",
+               
+            ]
+        }
+        subscribe(settings.movimiento, "motion.active", onAccion)
+    }
     
 }
 
