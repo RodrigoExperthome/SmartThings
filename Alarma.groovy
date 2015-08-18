@@ -361,26 +361,30 @@ private def initialize() {
 //mapeo sensores y suscripcion
 private def sensores() {
     log.debug("sensores()")
-    state.sensor = []
-    state.sensor << [
+    state.sensorContacto = []
+    state.sensorContacto << [
         deviceId:   null,
-        tipoArmado:   "Casa",
+        tipoArmado: "Casa",
     ]
     if (settings.contacto) {
         settings.contacto.each() {
-            state.sensor << [
+            state.sensorContacto << [
                 idSensor:   it.id,
                 tipoArmado: settings["type_${it.id}"] ?: "Afuera",
             ]
         }
         subscribe(settings.contacto, "contact.open", onContacto)
     }
-
+    state.sensorMovimiento = []
+    state.sensorMovimiento << [
+        deviceId:   null,
+        tipoArmado: "Casa",
+    ]
     if (settings.movimiento) {
         settings.movimiento.each() {
-            state.zones << [
+            state.sensorMovimiento << [
                 idSensor:   it.id,
-                tipoArmado:   settings["type_${it.id}"] ?: "Casa",
+                tipoArmado: settings["type_${it.id}"] ?: "Casa",
             ]
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
@@ -389,7 +393,7 @@ private def sensores() {
 // Control remoto por default define botones (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico
 private def controlRemoto() {
     if (state.buttonActions) {
-        subscribe(settings.remotes, "button", onButtonEvent)
+        subscribe(settings.remotes, "button", onControlRemoto)
     }
 }
 
@@ -410,30 +414,38 @@ private def switchVirtual() {
     }
 }
 
-
 def onContacto(evt) {
-    def sensorOk = state.sensor.find() { it.deviceId == evt.deviceId }
-    if (!sensorOk) {
+    def contactoOk = state.sensorContacto.find() { it. == evt.deviceId }
+    if (!contactoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    if (sensorOk.size() > 1) {
+    if (contactoOk.size() > 1) {
         log.warn ("More than one device recognize")
         return
     }
-    if(sensorOk.tipoArmado = "Afuera" && state.afuera) {
-        
-        
-        
+    if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
+    || (contactoOk.tipoArmado = "Casa" && state.casa)) {
+        log.debug("Activando Alarma ${evt.displayName}")
+        activarAlarma()    
     }
+}
 
-            
-        
-        
+def onMovimiento(evt) {
+    def movimientoOk = state.sensorMovimiento.find() { it. == evt.deviceId }
+    if (!movimientoOk) {
+        log.warn ("Cannot find zone for device ${evt.deviceId}")
+        return
     }
-        
-        
-    
+    if (movimientoOk.size() > 1) {
+        log.warn ("More than one device recognize")
+        return
+    }
+    if((movimientoOk.tipoArmado = "Afuera" && state.afuera) || (movimientoOk.tipoArmado = "Casa" && state.afuera)
+    || (movimientoOk.tipoArmado = "Casa" && state.casa)) {
+        log.debug("Activando Alarma ${evt.displayName}")
+        activarAlarma()    
+    }
 }
     
 private def checkStates () {
