@@ -27,7 +27,7 @@
 import groovy.json.JsonSlurper
 
 definition(
-    name: "Expert Alarm",
+    name: "Alarma ExpertHome",
     namespace: "Experthome",
     author: "rodrigo@experthome.cl",
     description: "Sistema de alarma integrado a Experthome.cl. Permite monitoreo de casa, " +
@@ -155,6 +155,8 @@ def pageOpcionesActivacion() {
         "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
     def resumenSwitch =    
         "Solo para ser usados por switch virtuales"    
+    def resumenAudio =    
+        "Opciones de audio"        
     def inputModoAfuera = [
         name:       "modosAfuera",
         type:       "mode",
@@ -236,13 +238,6 @@ def pageOpcionesAlarma() {
         multiple:       true,
         required:       false
     ]
-    def inputModoSirena = [
-        name:           "modoSirena",
-        type:           "enum",
-        metadata:       [values:["Off","Siren","Strobe","Both"]],
-        title:          "Que tipo de modo sirena",
-        defaultValue:   "Both"
-    ]
     def inputLuces = [
         name:           "luces",
         type:           "capability.switch",
@@ -253,7 +248,7 @@ def pageOpcionesAlarma() {
     def inputCamaras = [
         name:           "camaras",
         type:           "capability.imageCapture",
-        title:          "Which cameras?",
+        title:          "Que camaras?",
         multiple:       true,
         required:       false
     ]
@@ -267,6 +262,38 @@ def pageOpcionesAlarma() {
         name:           "phone2",
         type:           "phone",
         title:          "Envia a este numero",
+        required:       false
+    ]
+    def inputPushbulletDevice = [
+        name:           "pushbullet",
+        type:           "device.pushbullet",
+        title:          "Que cuenta pushbullet?",
+        multiple:       true,
+        required:       false
+    ]
+    def inputAudioPlayers = [
+        name:           "audioPlayer",
+        type:           "capability.musicPlayer",
+        title:          "Que parlantes?",
+        multiple:       true,
+        required:       false
+    ]
+    def inputSpeechTextArmedAway = [
+        name:           "speechTextArmedAway",
+        type:           "text",
+        title:          "Frase Armado Afuera",
+        required:       false
+    ]
+    def inputSpeechTextArmedStay = [
+        name:           "speechTextArmedStay",
+        type:           "text",
+        title:          "Frase Armado En Casa",
+        required:       false
+    ]
+    def inputSpeechTextDisarmed = [
+        name:           "speechTextDisarmed",
+        type:           "text",
+        title:          "Frase Desarmado",
         required:       false
     ]
     def pageProperties = [
@@ -292,6 +319,15 @@ def pageOpcionesAlarma() {
         section("Mensajes de Texto") {
             input inputPhone1
             input inputPhone2
+        }
+        section("Pushbullet") {
+            input inputPushbulletDevice
+        }
+        section("Audio"){
+            input inputAudioPlayers
+            input inputSpeechTextArmedAway
+            input inputSpeechTextArmedStay
+            input inputSpeechTextDisarmed
         }
     }
 }
