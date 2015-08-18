@@ -392,8 +392,8 @@ private def sensores() {
 }
 // Control remoto por default define botones (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico
 private def controlRemoto() {
-    if (state.buttonActions) {
-        subscribe(settings.remotes, "button", onControlRemoto)
+    if (settings.remoto) {
+        subscribe(settings.remoto, "button", onControlRemoto)
     }
 }
 
@@ -456,22 +456,19 @@ def onMovimiento(evt) {
 //Cuando se aprieta un boton del control remoto, 
 //ejecutando un cambio? del estado de la alarma.
 def onControlRemoto(evt) {
-    if (!state.buttonActions || !evt.data) {
+    if (!evt.data) {
         return
     }
-
     def slurper = new JsonSlurper()
     def data = slurper.parseText(evt.data)
     def button = data.buttonNumber?.toInteger()
     if (button) {
-        LOG("Button '${button}' was ${evt.value}.")
-        def item = state.buttonActions.find {
-            it.button == button && it.event == evt.value
+        log.debug("Boton '${button}' fue ${evt.value}.")
+        if (button == 1) {
+            ArmadoAfuera
         }
 
-        if (item) {
-            LOG("Executing '${item.action}' button action")
-            "${item.action}"()
+        
         }
     }
     
