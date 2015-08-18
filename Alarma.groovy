@@ -309,22 +309,17 @@ def updated() {
 }
 
 private def initialize() {
-    //Estado alarma es Desarmado al instalar la SmartApp
-    
     //Estado de activacion de alarma
-    state.alarma = false
-    state.desconectada = false
-    
-    //Mapeo sensores en state.sensor() y me suscribo a eventos de movimiento y apertura
+    state.afuera = false
+    state.casa = false
+    state.panico = false
+    state.desarmado = false
+    //Mapeo de la alarma
+    state.alarma = []
+    //Mapeo sensores y suscripcion a eventos
     sensores()
-    //Suscripcion a botones
     controlRemoto()
-    //Suscripcion a switch virtual
     switchVirtual()
-    
-    
-    
-    
 }
 
 //mapeo sensores y suscripcion
@@ -357,7 +352,6 @@ private def sensores() {
 }
 // Control remoto por default define botones (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico
 private def controlRemoto() {
-    log.debug("initButtons()")
     if (state.buttonActions) {
         subscribe(settings.remotes, "button", onButtonEvent)
     }
@@ -380,7 +374,11 @@ private def switchVirtual() {
     }
 }
 
-
+def onAccion(evt) {
+    
+    
+    
+}
     
 private def alarmaOk () {
 }
