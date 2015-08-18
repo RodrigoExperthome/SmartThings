@@ -337,7 +337,7 @@ private def sensores() {
                 tipoArmado: settings["type_${it.id}"] ?: "Afuera",
             ]
         }
-        subscribe(settings.contacto, "contact.open", onAccion)
+        subscribe(settings.contacto, "contact.open", onContacto)
     }
 
     if (settings.movimiento) {
@@ -347,7 +347,7 @@ private def sensores() {
                 tipoArmado:   settings["type_${it.id}"] ?: "Casa",
             ]
         }
-        subscribe(settings.movimiento, "motion.active", onAccion)
+        subscribe(settings.movimiento, "motion.active", onMovimiento)
     }
 }
 // Control remoto por default define botones (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico
@@ -374,14 +374,42 @@ private def switchVirtual() {
     }
 }
 
-def onAccion(evt) {
-    
-    
+
+def onContacto(evt) {
+    def sensorOk = state.sensor.find() { it.deviceId == evt.deviceId }
+    if (!sensorOk) {
+        log.warn ("Cannot find zone for device ${evt.deviceId}")
+        return
+    }
+    if (sensorOk.size() > 1) {
+        log.warn ("More than one device recognize")
+        return
+    }
+    if(sensorOk.tipoArmado = "Afuera" && state.afuera) {
+        
+        
+        
+    }
+
+            
+        
+        
+    }
+        
+        
     
 }
     
-private def alarmaOk () {
+private def checkStates () {
+    def checkStates = state.afuera || state.casa || state.panico || state.desarmado
+    if (checkState = true) {
+        return true
+    } else {
+        log.warn("Estado de la alarma mal configurado")
+        break
+    }
 }
+
 private def armadoAfuera () {
 }
 private def armadoCasa () {
