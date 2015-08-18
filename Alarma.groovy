@@ -401,19 +401,21 @@ private def switchVirtual() {
     log.debug("switchVirtual()")
     
     if (settings.switchAfuera) {
-        suscribe(settings.switchAfuera,"switch",armadoAfuera)
+        suscribe(settings.switchAfuera,"switch.on",onActivacion)
     }
     if (settings.switchEnCasa) {
-        suscribe(settings.switchEnCasa,"switch",armadoCasa)
+        suscribe(settings.switchEnCasa,"switch.on",onActivacion)
     }
     if (settings.switchDesactivar) {
-        suscribe(settings.switchDesactivar,"switch",armadoDesarmado)
+        suscribe(settings.switchDesactivar,"switch.on",onActivacion)
     }
     if (settings.switchPanico) {
-        suscribe(settings.switchPanico,"switch",armadoPanico)
+        suscribe(settings.switchPanico,"switch.on",onActivacion)
     }
 }
-
+//Cuando ocurre un evento de contact.open, reviso 
+//que tipo de armado tiene el sensor, y lo comparo con el
+//estado de la alarma.
 def onContacto(evt) {
     def contactoOk = state.sensorContacto.find() { it. == evt.deviceId }
     if (!contactoOk) {
@@ -431,6 +433,9 @@ def onContacto(evt) {
     }
 }
 
+//Cuando ocurre un evento de motion.presence, reviso 
+//que tipo de armado tiene el sensor, y lo comparo con el
+//estado de la alarma.
 def onMovimiento(evt) {
     def movimientoOk = state.sensorMovimiento.find() { it. == evt.deviceId }
     if (!movimientoOk) {
@@ -446,6 +451,31 @@ def onMovimiento(evt) {
         log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma()    
     }
+}
+
+//Cuando se aprieta un boton del control remoto, 
+//ejecutando un cambio? del estado de la alarma.
+def onControlRemoto(evt) {
+    if (!state.buttonActions || !evt.data) {
+        return
+    }
+
+    def slurper = new JsonSlurper()
+    def data = slurper.parseText(evt.data)
+    def button = data.buttonNumber?.toInteger()
+    if (button) {
+        LOG("Button '${button}' was ${evt.value}.")
+        def item = state.buttonActions.find {
+            it.button == button && it.event == evt.value
+        }
+
+        if (item) {
+            LOG("Executing '${item.action}' button action")
+            "${item.action}"()
+        }
+    }
+    
+    
 }
     
 private def checkStates () {
