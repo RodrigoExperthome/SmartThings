@@ -427,9 +427,10 @@ def onContacto(evt) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    contactoOk.each() {
-        log.debug ("${it.idSensor} / ${it.tipoArmado}")
-    }
+    log.debug("${contactOk.idSensor}")
+    //contactoOk.each() {
+    //    log.debug ("${it.idSensor} / ${it.tipoArmado}")
+    //}
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
@@ -446,6 +447,7 @@ def onMovimiento(evt) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
+    log.debug("${movimientoOk.idSensor}")
     movimientoOk.each() {
         log.debug ("${it.idSensor} / ${it.tipoArmado}")
     }
