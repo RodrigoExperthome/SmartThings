@@ -401,16 +401,16 @@ private def botonSimulado() {
     log.debug("botonSimulado()")
     if (settings.botonAfuera) {
         log.debug("Que onda '${settings.botonAfuera}'")
-        suscribe(settings.botonAfuera,"button",onActivacion)
+        subscribe(settings.botonAfuera,"button",onActivacion)
     }
     if (settings.botonCasa) {
-        suscribe(settings.botonCasa,"button",onActivacion)
+        subscribe(settings.botonCasa,"button",onActivacion)
     }
     if (settings.botonDesactivar) {
-        suscribe(settings.botonDesactivar,"button",onActivacion)
+        subscribe(settings.botonDesactivar,"button",onActivacion)
     }
     if (settings.botonPanico) {
-        suscribe(settings.botonPanico,"button",onActivacion)
+        subscribe(settings.botonPanico,"button",onActivacion)
     }
 }
 //Cuando ocurre un evento de contact.open, reviso 
@@ -422,10 +422,8 @@ def onContacto(evt) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    if (contactoOk.size() > 1) {
-        log.warn ("More than one device recognize")
-        return
-    }
+    log.debug ("${contactoOk.size() dispostivo(s) reconocido(s)")
+    
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
@@ -442,10 +440,7 @@ def onMovimiento(evt) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    if (movimientoOk.size() > 1) {
-        log.warn ("More than one device recognize")
-        return
-    }
+    log.debug ("${movimientoOk.size() dispostivo(s) reconocido(s)")
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
