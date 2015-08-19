@@ -475,7 +475,10 @@ def onControlRemoto(evt) {
         
     }
 }
-    
+
+def onActivacion(evt) {
+    log.debug("OnACTIVACION")
+}    
 
 
 private def armadoAfuera () {
