@@ -299,7 +299,7 @@ def pageOpcionesAlarma() {
     def pageProperties = [
         name:       "pageOpcionesAlarma",
         nextPage:   "pageStatus",
-        uninstall:  true
+        uninstall:  false
     ]
 
     return dynamicPage(pageProperties) {
@@ -308,7 +308,6 @@ def pageOpcionesAlarma() {
         }
         section("Sirenas") {
             input inputSirena
-            input inputModoSirena
         }
         section("Luces a prender") {
             input inputLuces
@@ -323,7 +322,7 @@ def pageOpcionesAlarma() {
         section("Pushbullet") {
             input inputPushbulletDevice
         }
-        section("Audio"){
+        section("Audio") {
             input inputAudioPlayers
             input inputSpeechTextArmedAway
             input inputSpeechTextArmedStay
