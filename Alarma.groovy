@@ -422,15 +422,19 @@ private def botonSimulado() {
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
 def onContacto(evt) {
+    log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
+    state.sensorContacto.each {
+        log.debug("Sensor Contacto ${it.idSensor} / ${it.tipoArmado}")
+    }
+    
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
     if (!contactoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    log.debug("${contactOk.idSensor}")
-    //contactoOk.each() {
-    //    log.debug ("${it.idSensor} / ${it.tipoArmado}")
-    //}
+    contactoOk.each() {
+        log.debug ("${it.idSensor} / ${it.tipoArmado}")
+    }
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
