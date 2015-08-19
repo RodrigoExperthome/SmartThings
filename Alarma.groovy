@@ -49,8 +49,8 @@ preferences {
 }
 
 def pageStatus() {
-    def alarmStatus = "La alarma esta Activada Afuera"
-    //def alarmStatus = "Alarm is ${getAlarmStatus()}"
+    // def alarmStatus = "La alarma esta Activada Afuera"
+    def alarmStatus = "La Alarma está ${statusAlarma()}"
     def pageProperties = [
         name:       "pageStatus",
         nextPage:   null,
@@ -400,6 +400,7 @@ private def switchVirtual() {
     log.debug("switchVirtual()")
     
     if (settings.switchAfuera) {
+        log.debug("${settings.switchAfuera}")
         suscribe(settings.switchAfuera,"switch.on",onActivacion)
     }
     if (settings.switchEnCasa) {
@@ -436,7 +437,7 @@ def onContacto(evt) {
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
 def onMovimiento(evt) {
-    def movimientoOk = state.sensorMovimiento.find() { it. == evt.deviceId }
+    def movimientoOk = state.sensorMovimiento.find() { it.sensorId == evt.deviceId }
     if (!movimientoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
@@ -513,4 +514,20 @@ private def activarAlarma () {
     log.debug("activarAlarma")
 }
 private def desactivarAlarma () {
+}
+
+private def statusAlarma(){
+    if(state.afuera) {
+        statusAlarmaAhora = "Armada Afuera"
+    }
+    if(state.casa) {
+        statusAlarmaAhora = "Armada En Casa"
+    }
+    if(state.desarmado) {
+        statusAlarmaAhora = "Desarmada"
+    }
+    if(state.panico) {
+        statusAlarmaAhora = "Panico"
+    }
+    return statusAlarmaAhora
 }
