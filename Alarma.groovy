@@ -437,7 +437,7 @@ def onContacto(evt) {
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
 def onMovimiento(evt) {
-    def movimientoOk = state.sensorMovimiento.find() { it.sensorId == evt.deviceId }
+    def movimientoOk = state.sensorMovimiento.find() { it.idSensor == evt.deviceId }
     if (!movimientoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
