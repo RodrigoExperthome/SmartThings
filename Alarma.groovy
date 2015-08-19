@@ -349,7 +349,7 @@ private def initialize() {
     state.afuera = false
     state.casa = false
     state.panico = false
-    state.desarmado = false
+    state.desarmado = true
     //Mapeo de la alarma
     state.alarma = []
     //Mapeo sensores y suscripcion a eventos
@@ -363,7 +363,7 @@ private def sensores() {
     log.debug("sensores()")
     state.sensorContacto = []
     state.sensorContacto << [
-        deviceId:   null,
+        idSensor:   null,
         tipoArmado: "Casa",
     ]
     if (settings.contacto) {
@@ -377,7 +377,7 @@ private def sensores() {
     }
     state.sensorMovimiento = []
     state.sensorMovimiento << [
-        deviceId:   null,
+        idSensor:   null,
         tipoArmado: "Casa",
     ]
     if (settings.movimiento) {
@@ -417,7 +417,7 @@ private def switchVirtual() {
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
 def onContacto(evt) {
-    def contactoOk = state.sensorContacto.find() { it. == evt.deviceId }
+    def contactoOk = state.sensorContacto.find() { it.idSensor == evt.deviceId }
     if (!contactoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
@@ -480,14 +480,35 @@ def onControlRemoto(evt) {
 
 
 private def armadoAfuera () {
+    log.debug("armadoAfuera")
+    atomicState.afuera = true
+    atomicState.casa = false
+    atomicState.panico = false
+    atomicState.desarmado = false
 }
 private def armadoCasa () {
+    log.debug("armadoCasa")
+    atomicState.afuera = false
+    atomicState.casa = true
+    atomicState.panico = false
+    atomicState.desarmado = false
 }
 private def desarmado () {
+    atomicState.afuera = false
+    atomicState.casa = false
+    atomicState.panico = false
+    atomicState.desarmado = true    
+    log.debug("desarmado")
 }
 private def panico () {
+    atomicState.afuera = false
+    atomicState.casa = false
+    atomicState.panico = false
+    atomicState.desarmado = true    
+    log.debug("panico")
 }
 private def activarAlarma () {
+    log.debug("activarAlarma")
 }
 private def desactivarAlarma () {
 }
