@@ -423,17 +423,10 @@ private def botonSimulado() {
 //estado de la alarma.
 def onContacto(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
-    state.sensorContacto.each() {
-        log.debug("Sensor Contacto ${it.idSensor} / ${it.tipoArmado}")
-    }
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
     if (!contactoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
-    }
-    log.debug ("Sin each ${contactoOk.idSensor} / ${contactoOk.tipoArmado}")
-    contactoOk.each() {
-        log.debug ("Con each ${it.idSensor} / ${it.tipoArmado}")
     }
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
@@ -446,14 +439,11 @@ def onContacto(evt) {
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
 def onMovimiento(evt) {
+    log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def movimientoOk = state.sensorMovimiento.find() { it.idSensor == evt.deviceId }
     if (!movimientoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
-    }
-    log.debug("${movimientoOk.idSensor}")
-    movimientoOk.each() {
-        log.debug ("${it.idSensor} / ${it.tipoArmado}")
     }
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
