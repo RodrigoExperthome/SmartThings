@@ -374,6 +374,9 @@ private def sensores() {
             ]
         }
         subscribe(settings.contacto, "contact.open", onContacto)
+        state.sensorContacto.each() {
+            log.debug ("${it.idSensor} / ${it.tipoArmado}")    
+        }
     }
     state.sensorMovimiento = []
     state.sensorMovimiento << [
@@ -388,6 +391,9 @@ private def sensores() {
             ]
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
+        state.sensorMovimiento.each() {
+            log.debug ("${it.idSensor} / ${it.tipoArmado}")    
+        }
     }
 }
 // Control remoto por default define botones (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico
@@ -400,7 +406,6 @@ private def controlRemoto() {
 private def botonSimulado() {
     log.debug("botonSimulado()")
     if (settings.botonAfuera) {
-        log.debug("Que onda '${settings.botonAfuera}'")
         subscribe(settings.botonAfuera,"button",onActivacion)
     }
     if (settings.botonCasa) {
@@ -417,13 +422,14 @@ private def botonSimulado() {
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
 def onContacto(evt) {
-    def contactoOk = state.sensorContacto.find() { it.idSensor == evt.deviceId }
+    def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
     if (!contactoOk) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    log.debug ("${contactoOk.size() dispostivo(s) reconocido(s)")
-    
+    contactoOk.each() {
+        log.debug ("${it.idSensor} / ${it.tipoArmado}")
+    }
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
@@ -440,7 +446,9 @@ def onMovimiento(evt) {
         log.warn ("Cannot find zone for device ${evt.deviceId}")
         return
     }
-    log.debug ("${movimientoOk.size() dispostivo(s) reconocido(s)")
+    movimientoOk.each() {
+        log.debug ("${it.idSensor} / ${it.tipoArmado}")
+    }
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
