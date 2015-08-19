@@ -153,8 +153,9 @@ def pageOpcionesActivacion() {
     def resumenRemotos =    
         "Control remoto por default define botones " +
         "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
-    def resumenSwitch =    
-        "Solo para ser usados por switch virtuales"    
+    def resumenBoton =    
+        "Solo para ser usados por botones simulados" + 
+        "definidos en ST"
     def resumenAudio =    
         "Opciones de audio"        
     def inputModoAfuera = [
@@ -171,30 +172,30 @@ def pageOpcionesActivacion() {
         multiple:   true,
         required:   false
     ]
-    def inputSwitchAfuera = [
-        name:       "switchAfuera",
-        type:       "capability.switch",
+    def inputBotonAfuera = [
+        name:       "botonAfuera",
+        type:       "capability.button",
         title:      "Afuera?",
         multiple:   true,
         required:   false
     ]
-    def inputSwitchEnCasa = [
-        name:       "switchEnCasa",
-        type:       "capability.switch",
+    def inputBotonCasa = [
+        name:       "botonCasa",
+        type:       "capability.button",
         title:      "En Casa?",
         multiple:   true,
         required:   false
     ]
-    def inputSwitchDesactivar = [
-        name:       "switchDesactivar",
-        type:       "capability.switch",
+    def inputBotonDesactivar = [
+        name:       "botonDesactivar",
+        type:       "capability.button",
         title:      "Desactiva?",
         multiple:   true,
         required:   false
     ]
-    def inputSwitchPanico = [
-        name:       "switchPanico",
-        type:       "capability.switch",
+    def inputBotonPanico = [
+        name:       "botonPanico",
+        type:       "capability.button",
         title:      "Panico?",
         multiple:   true,
         required:   false
@@ -215,12 +216,12 @@ def pageOpcionesActivacion() {
            paragraph resumenRemotos
            input inputRemotes
         }
-        section("Switch Virtual") {
-           paragraph resumenSwitch
-           input inputSwitchAfuera
-           input inputSwitchEnCasa
-           input inputSwitchDesactivar
-           input inputSwitchPanico
+        section("Botones Simulados para Keypad") {
+           paragraph resumenBoton
+           input inputBotonAfuera
+           input inputBotonCasa
+           input inputBotonDesactivar
+           input inputBotonPanico
         }
     }
 }
@@ -354,7 +355,7 @@ private def initialize() {
     //Mapeo sensores y suscripcion a eventos
     sensores()
     controlRemoto()
-    switchVirtual()
+    botonSimulado()
 }
 
 //mapeo sensores y suscripcion
@@ -363,7 +364,7 @@ private def sensores() {
     state.sensorContacto = []
     state.sensorContacto << [
         idSensor:   null,
-        tipoArmado: "Casa",
+        tipoArmado: "Afuera",
     ]
     if (settings.contacto) {
         settings.contacto.each() {
@@ -396,20 +397,20 @@ private def controlRemoto() {
     }
 }
 
-private def switchVirtual() {
-    log.debug("switchVirtual()")
-    if (settings.switchAfuera) {
-        log.debug("Que onda '${settings.switchAfuera}'")
-        suscribe(settings.switchAfuera,"switch.on",onActivacion,[filterEvents: false])
+private def botonSimulado() {
+    log.debug("botonSimulado()")
+    if (settings.botonAfuera) {
+        log.debug("Que onda '${settings.botonAfuera}'")
+        suscribe(settings.botonAfuera,"button",onActivacion)
     }
-    if (settings.switchEnCasa) {
-        suscribe(settings.switchEnCasa,"switch.on",onActivacion,[filterEvents: false])
+    if (settings.botonCasa) {
+        suscribe(settings.botonCasa,"button",onActivacion)
     }
-    if (settings.switchDesactivar) {
-        suscribe(settings.switchDesactivar,"switch.on",onActivacion,[filterEvents: false])
+    if (settings.botonDesactivar) {
+        suscribe(settings.botonDesactivar,"button",onActivacion)
     }
-    if (settings.switchPanico) {
-        suscribe(settings.switchPanico,"switch.on",onActivacion,[filterEvents: false])
+    if (settings.botonPanico) {
+        suscribe(settings.botonPanico,"button",onActivacion)
     }
 }
 //Cuando ocurre un evento de contact.open, reviso 
@@ -529,6 +530,10 @@ private def statusAlarma(){
     }
     if(state.panico) {
         statusAlarmaAhora = "Panico"
+    }
+    def alarmaDesinstalada = state.afuera||state.casa||state.desarmado||state.panico
+    if (alarmaDesintalada==null) {
+        statusAlarmaAhora = "No instalada"
     }
     return statusAlarmaAhora
 }
