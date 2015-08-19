@@ -398,19 +398,18 @@ private def controlRemoto() {
 
 private def switchVirtual() {
     log.debug("switchVirtual()")
-    
     if (settings.switchAfuera) {
         log.debug("Que onda '${settings.switchAfuera}'")
-        suscribe(settings.switchAfuera,"switch.on",onActivacion)
+        suscribe(settings.switchAfuera,"switch.on",onActivacion,[filterEvents: false])
     }
     if (settings.switchEnCasa) {
-        suscribe(settings.switchEnCasa,"switch.on",onActivacion)
+        suscribe(settings.switchEnCasa,"switch.on",onActivacion,[filterEvents: false])
     }
     if (settings.switchDesactivar) {
-        suscribe(settings.switchDesactivar,"switch.on",onActivacion)
+        suscribe(settings.switchDesactivar,"switch.on",onActivacion,[filterEvents: false])
     }
     if (settings.switchPanico) {
-        suscribe(settings.switchPanico,"switch.on",onActivacion)
+        suscribe(settings.switchPanico,"switch.on",onActivacion,[filterEvents: false])
     }
 }
 //Cuando ocurre un evento de contact.open, reviso 
@@ -456,11 +455,10 @@ def onMovimiento(evt) {
 //Cuando se aprieta un boton del control remoto, 
 //ejecutando un cambio? del estado de la alarma.
 def onControlRemoto(evt) {
-    /**
+    log.debug("onControlRemoto")
     if (!evt.data) {
         return
     }
-    */
     def slurper = new JsonSlurper()
     def data = slurper.parseText(evt.data)
     def button = data.buttonNumber?.toInteger()
