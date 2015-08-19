@@ -400,7 +400,7 @@ private def switchVirtual() {
     log.debug("switchVirtual()")
     
     if (settings.switchAfuera) {
-        log.debug("${settings.switchAfuera}")
+        log.debug("Que onda '${settings.switchAfuera}'")
         suscribe(settings.switchAfuera,"switch.on",onActivacion)
     }
     if (settings.switchEnCasa) {
@@ -456,14 +456,16 @@ def onMovimiento(evt) {
 //Cuando se aprieta un boton del control remoto, 
 //ejecutando un cambio? del estado de la alarma.
 def onControlRemoto(evt) {
+    /**
     if (!evt.data) {
         return
     }
+    */
     def slurper = new JsonSlurper()
     def data = slurper.parseText(evt.data)
     def button = data.buttonNumber?.toInteger()
     if (button) {
-        log.debug("Boton '${button}' fue ${evt.value}.")
+        log.debug("Boton ${button} fue ${evt.value}")
         if (button == 1) {
             armadoAfuera()
         } else if (button==2) {
@@ -482,41 +484,42 @@ def onActivacion(evt) {
 }    
 
 
-private def armadoAfuera () {
+private def armadoAfuera() {
     log.debug("armadoAfuera")
     atomicState.afuera = true
     atomicState.casa = false
     atomicState.panico = false
     atomicState.desarmado = false
 }
-private def armadoCasa () {
+private def armadoCasa() {
     log.debug("armadoCasa")
     atomicState.afuera = false
     atomicState.casa = true
     atomicState.panico = false
     atomicState.desarmado = false
 }
-private def desarmado () {
+private def desarmado() {
     atomicState.afuera = false
     atomicState.casa = false
     atomicState.panico = false
     atomicState.desarmado = true    
     log.debug("desarmado")
 }
-private def panico () {
+private def panico() {
     atomicState.afuera = false
     atomicState.casa = false
     atomicState.panico = false
     atomicState.desarmado = true    
     log.debug("panico")
 }
-private def activarAlarma () {
+private def activarAlarma() {
     log.debug("activarAlarma")
 }
-private def desactivarAlarma () {
+private def desactivarAlarma() {
 }
 
 private def statusAlarma(){
+    def statusAlarmaAhora
     if(state.afuera) {
         statusAlarmaAhora = "Armada Afuera"
     }
