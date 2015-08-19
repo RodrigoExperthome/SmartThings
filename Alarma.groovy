@@ -446,8 +446,8 @@ def onMovimiento(evt) {
         log.warn ("More than one device recognize")
         return
     }
-    if((movimientoOk.tipoArmado = "Afuera" && state.afuera) || (movimientoOk.tipoArmado = "Casa" && state.afuera)
-    || (movimientoOk.tipoArmado = "Casa" && state.casa)) {
+    if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
+    || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma()    
     }
@@ -465,33 +465,27 @@ def onControlRemoto(evt) {
     if (button) {
         log.debug("Boton '${button}' fue ${evt.value}.")
         if (button == 1) {
-            ArmadoAfuera
+            armadoAfuera()
+        } else if (button==2) {
+            armadoCasa()
+        } else if (button==3) {
+            desarmado()
+        } else if (button==4) {
+            panico()
         }
-
         
-        }
-    }
-    
-    
-}
-    
-private def checkStates () {
-    def checkStates = state.afuera || state.casa || state.panico || state.desarmado
-    if (checkState = true) {
-        return true
-    } else {
-        log.warn("Estado de la alarma mal configurado")
-        break
     }
 }
+    
+
 
 private def armadoAfuera () {
 }
 private def armadoCasa () {
 }
-private def armadoDesarmado () {
+private def desarmado () {
 }
-private def armadoPanico () {
+private def panico () {
 }
 private def activarAlarma () {
 }
