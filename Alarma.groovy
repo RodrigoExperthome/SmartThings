@@ -406,16 +406,16 @@ private def controlRemoto() {
 private def botonSimulado() {
     log.debug("botonSimulado()")
     if (settings.botonAfuera) {
-        subscribe(settings.botonAfuera,"button",onActivacion)
+        subscribe(settings.botonAfuera,"button",armadoAfuera)
     }
     if (settings.botonCasa) {
-        subscribe(settings.botonCasa,"button",onActivacion)
+        subscribe(settings.botonCasa,"button",armadoCasa)
     }
     if (settings.botonDesactivar) {
-        subscribe(settings.botonDesactivar,"button",onActivacion)
+        subscribe(settings.botonDesactivar,"button",desarmado)
     }
     if (settings.botonPanico) {
-        subscribe(settings.botonPanico,"button",onActivacion)
+        subscribe(settings.botonPanico,"button",panico)
     }
 }
 //Cuando ocurre un evento de contact.open, reviso 
@@ -477,43 +477,44 @@ def onControlRemoto(evt) {
     }
 }
 
-def onActivacion(evt) {
-    log.debug("OnACTIVACION")
-}    
-
-
 private def armadoAfuera() {
-    log.debug("armadoAfuera")
     atomicState.afuera = true
     atomicState.casa = false
     atomicState.panico = false
     atomicState.desarmado = false
+    log.debug("armadoAfuera ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+
 }
 private def armadoCasa() {
-    log.debug("armadoCasa")
     atomicState.afuera = false
     atomicState.casa = true
     atomicState.panico = false
     atomicState.desarmado = false
+    log.debug("armadoCasa ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+    
 }
 private def desarmado() {
     atomicState.afuera = false
     atomicState.casa = false
     atomicState.panico = false
-    atomicState.desarmado = true    
-    log.debug("desarmado")
+    atomicState.desarmado = true  
+    log.debug("desarmado ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+    desactivarAlarma()
 }
 private def panico() {
     atomicState.afuera = false
     atomicState.casa = false
     atomicState.panico = false
-    atomicState.desarmado = true    
-    log.debug("panico")
+    atomicState.desarmado = true 
+    log.debug("panico ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+    activarAlarma()
 }
+
 private def activarAlarma() {
-    log.debug("activarAlarma")
+    log.debug("BEE DO BEE DO BEE DO")
 }
 private def desactivarAlarma() {
+    log.debug("BANANA")
 }
 
 private def statusAlarma(){
