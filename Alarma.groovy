@@ -353,6 +353,7 @@ private def initialize() {
     //Mapeo de la alarma
     state.alarma = []
     //Mapeo sensores y suscripcion a eventos
+    log.debug("statusAlarma()")
     sensores()
     controlRemoto()
     botonSimulado()
