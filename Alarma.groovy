@@ -477,10 +477,9 @@ def onControlRemoto(evt) {
         
     }
 }
-
-def onBotonSimuladoAfuera() {
-    
-    
+//Nombre Boton Simulado debe ser mismo que funciones definidas
+def onBotonSimulado(evt) {
+    "${evt.displayName}"()
 }
 
 private def armadoAfuera() {
@@ -533,18 +532,18 @@ private def armadoAlarma(tipo){
 private def statusAlarma(){
     def statusAlarmaAhora
     if(state.afuera) {
-        statusAlarmaAhora = "Armada Afuera"
+        statusAlarmaAhora = "Status - Armada Afuera"
     }
     if(state.casa) {
-        statusAlarmaAhora = "Armada En Casa"
+        statusAlarmaAhora = "Status - Armada En Casa"
     }
     if(state.desarmado) {
-        statusAlarmaAhora = "Desarmada"
+        statusAlarmaAhora = "Status - Desarmada"
     }
     if(state.panico) {
-        statusAlarmaAhora = "Panico"
+        statusAlarmaAhora = "Status - Panico"
     }
-    def alarmaDesinstalada = state.afuera||state.casa||state.desarmado||state.panico
+    def alarmaDesinstalada = !state.afuera||!state.casa||!state.desarmado||!state.panico
     if (alarmaDesintalada==null) {
         statusAlarmaAhora = "No instalada"
     }
