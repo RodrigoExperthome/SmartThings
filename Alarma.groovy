@@ -525,7 +525,7 @@ private def armadoAlarma(tipo){
         state.casa = true
     }
     
-    log.debug("${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+    log.debug("Activar Alarma ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
     
     
 }
