@@ -478,34 +478,34 @@ def onControlRemoto(evt) {
 }
 
 private def armadoAfuera() {
-    atomicState.afuera = true
-    atomicState.casa = false
-    atomicState.panico = false
-    atomicState.desarmado = false
+    state.afuera = true
+    state.casa = false
+    state.panico = false
+    state.desarmado = false
     log.debug("armadoAfuera ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
 
 }
 private def armadoCasa() {
-    atomicState.afuera = false
-    atomicState.casa = true
-    atomicState.panico = false
-    atomicState.desarmado = false
+    state.afuera = false
+    state.casa = true
+    state.panico = false
+    state.desarmado = false
     log.debug("armadoCasa ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
     
 }
 private def desarmado() {
-    atomicState.afuera = false
-    atomicState.casa = false
-    atomicState.panico = false
-    atomicState.desarmado = true  
+    state.afuera = false
+    state.casa = false
+    state.panico = false
+    state.desarmado = true  
     log.debug("desarmado ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
     desactivarAlarma()
 }
 private def panico() {
-    atomicState.afuera = false
-    atomicState.casa = false
-    atomicState.panico = false
-    atomicState.desarmado = true 
+    state.afuera = false
+    state.casa = false
+    state.panico = true
+    state.desarmado = false 
     log.debug("panico ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
     activarAlarma()
 }
