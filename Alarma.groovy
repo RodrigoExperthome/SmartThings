@@ -353,7 +353,7 @@ private def initialize() {
     //Mapeo de la alarma
     state.alarma = []
     //Mapeo sensores y suscripcion a eventos
-    log.debug("statusAlarma()")
+    log.debug("${statusAlarma()}")
     sensores()
     controlRemoto()
     botonSimulado()
@@ -407,16 +407,16 @@ private def controlRemoto() {
 private def botonSimulado() {
     log.debug("botonSimulado()")
     if (settings.botonAfuera) {
-        subscribe(settings.botonAfuera,"button",armadoAfuera)
+        subscribe(settings.botonAfuera,"button",onBotonSimulado)
     }
     if (settings.botonCasa) {
-        subscribe(settings.botonCasa,"button",armadoCasa)
+        subscribe(settings.botonCasa,"button",onBotonSimulado)
     }
     if (settings.botonDesactivar) {
-        subscribe(settings.botonDesactivar,"button",desarmado)
+        subscribe(settings.botonDesactivar,"button",onBotonSimulado)
     }
     if (settings.botonPanico) {
-        subscribe(settings.botonPanico,"button",panico)
+        subscribe(settings.botonPanico,"button",onBotonSimulado)
     }
 }
 //Cuando ocurre un evento de contact.open, reviso 
@@ -478,37 +478,34 @@ def onControlRemoto(evt) {
     }
 }
 
-private def armadoAfuera() {
-    state.afuera = true
-    state.casa = false
-    state.panico = false
-    state.desarmado = false
-    log.debug("armadoAfuera ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
-
-}
-private def armadoCasa() {
-    state.afuera = false
-    state.casa = true
-    state.panico = false
-    state.desarmado = false
-    log.debug("armadoCasa ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+def onBotonSimuladoAfuera() {
+    
     
 }
+
+private def armadoAfuera() {
+    log.debug("armadoAfuera")
+    if (!atomicState.afuera){
+        armadoAlarma(true)
+    }
+}
+private def armadoCasa() {
+    log.debug("armadoCasa")
+    if (!atomicState.casa){
+        armadoAlarma(false)
+    }
+}
 private def desarmado() {
-    state.afuera = false
-    state.casa = false
-    state.panico = false
-    state.desarmado = true  
-    log.debug("desarmado ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
-    desactivarAlarma()
+    log.debug("desarmado")
+    if (!atomicState.desarmado){
+        desactivarAlarma()
+    }
 }
 private def panico() {
-    state.afuera = false
-    state.casa = false
-    state.panico = true
-    state.desarmado = false 
-    log.debug("panico ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
-    activarAlarma()
+    log.debug("panico")
+    if (!atomicState.panico){
+        activarAlarma()
+    }
 }
 
 private def activarAlarma() {
@@ -517,7 +514,22 @@ private def activarAlarma() {
 private def desactivarAlarma() {
     log.debug("BANANA")
 }
-
+//Armado Afuera = true y Armado Casa = false
+private def armadoAlarma(tipo){
+    state.desarmado = false
+    state.panico = false
+    if (tipo){
+        state.afuera = true
+        state.casa = false
+    } else {
+        state.afuera = false
+        state.casa = true
+    }
+    
+    log.debug("${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+    
+    
+}
 private def statusAlarma(){
     def statusAlarmaAhora
     if(state.afuera) {
