@@ -483,8 +483,13 @@ def onBotonSimulado(evt) {
     "${evt.displayName}"()
 }
 //Funciones (atomicState) evitan que se ejecute una acción de nuevo
+
 //Falta implementar funcion que revise que los contactos esten "open"
 //al momento de armado alarma. En dicho caso, se debe parar proceso.
+
+//Falta implementar mensaje con cambio de estado
+
+//Falta implementar que cuando la alarma esta activada solo funciona desactivar. state.alarmaOn
 private def armadoAfuera() {
     log.debug("armadoAfuera")
     log.debug("${revisarContactos()}")
@@ -510,17 +515,18 @@ private def panico() {
         activarAlarma()
     }
 }
-
+//Falta push, SMS y pushbullet
 private def activarAlarma(nombreDispositivo) {
     log.debug("BEE DO BEE DO BEE DO")
+    state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
-    // Only turn on those switches that are currently off
+    
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
     log.debug("lucesOn: ${lucesOn}")
     if (lucesOn) {
         lucesOn*.on()
-        state.offSwitches = switchesOn.collect {it.id}
+        state.offLuces = lucesOn.collect {it.id}
     }
     def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
     log.debug("${msg}")
@@ -528,6 +534,26 @@ private def activarAlarma(nombreDispositivo) {
 }
 private def desactivarAlarma() {
     log.debug("BANANA")
+    state.afuera = false
+    state.casa = false
+    state.desarmado = true
+    state.panico = false
+    
+    settings.sirena*.off()
+    
+    def lucesOff = state.offLuces
+    if (lucesOff) {
+        log.debug("lucesOff: ${lucesOff}")
+        settings.luces?.each() {
+            if (lucesOff.contains(it.id)) {
+                it.off()
+            }
+        }
+        state.offLuces = []
+    }
+    
+    
+    
 }
 //Armado Afuera = true y Armado Casa = false
 private def armadoAlarma(tipo){
@@ -542,7 +568,7 @@ private def armadoAlarma(tipo){
     }
     log.debug("Alarma esta armada ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
 }
-
+//Falta mandar un msg explicando razon de porque no se pudo armar la alarma
 private def revisarContactos(){
     def puertaAbierta = settings.contacto.findAll {it?.latestValue("contact").contains("open")}
     if (puertaAbierta.size() > 0) {
