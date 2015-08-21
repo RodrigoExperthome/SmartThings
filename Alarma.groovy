@@ -35,8 +35,8 @@ definition(
                  "Incluye integración tasker para keypad android (via botones/switch virtuales) y control remoto.",
     category: "Safety & Security",
     
-    iconUrl: "http://statusbits.github.io/icons/SmartAlarm-128.png",
-    iconX2Url: "http://statusbits.github.io/icons/SmartAlarm-256.png",
+    iconUrl: "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
+    iconX2Url: "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
 )
 
 preferences {
