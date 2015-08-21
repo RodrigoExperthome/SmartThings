@@ -154,8 +154,9 @@ def pageOpcionesActivacion() {
         "Control remoto por default define botones " +
         "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
     def resumenBoton =    
-        "Solo para ser usados por botones simulados" + 
-        "definidos en ST"
+        "Solo para ser usados por botones simulados " + 
+        "definidos en ST. Nombre botones deben ser: " +
+        "armadoAfuera, armadoCasa, desarmado, panico"
     def resumenAudio =    
         "Opciones de audio"        
     def inputModoAfuera = [
@@ -189,7 +190,7 @@ def pageOpcionesActivacion() {
     def inputBotonDesactivar = [
         name:       "botonDesactivar",
         type:       "capability.button",
-        title:      "Desactiva?",
+        title:      "Desarmado?",
         multiple:   true,
         required:   false
     ]
@@ -320,6 +321,7 @@ def pageOpcionesAlarma() {
             input inputPhone1
             input inputPhone2
         }
+        /** No me queda claro que sea usado en configuracion normal.
         section("Pushbullet") {
             input inputPushbulletDevice
         }
@@ -329,6 +331,7 @@ def pageOpcionesAlarma() {
             input inputSpeechTextArmedStay
             input inputSpeechTextDisarmed
         }
+        */
     }
 }
 
@@ -428,7 +431,7 @@ def onContacto(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
     if (!contactoOk) {
-        log.warn ("Cannot find zone for device ${evt.deviceId}")
+        log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
@@ -445,7 +448,7 @@ def onMovimiento(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def movimientoOk = state.sensorMovimiento.find() { it.idSensor == evt.deviceId }
     if (!movimientoOk) {
-        log.warn ("Cannot find zone for device ${evt.deviceId}")
+        log.warn ("No se encuentra el dispositivo de movimiento ${evt.deviceId}")
         return
     }
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
@@ -455,7 +458,7 @@ def onMovimiento(evt) {
     }
 }
 //Cuando se aprieta un boton del control remoto, 
-//ejecutando un cambio del estado de la alarma.
+//se ejecuta un cambio en el estado de la alarma.
 def onControlRemoto(evt) {
     log.debug("onControlRemoto")
     if (!evt.data) {
@@ -484,22 +487,26 @@ def onBotonSimulado(evt) {
 }
 //Funciones (atomicState) evitan que se ejecute una acción de nuevo
 
-//Falta implementar funcion que revise que los contactos esten "open"
-//al momento de armado alarma. En dicho caso, se debe parar proceso.
+//Falta comprobar que funcion que revisarContactos este funcionando
+//Revisa que contactos esten "open" al momento de armado alarma. En dicho caso, se debe parar proceso.
+//Mensaje push debe ser enviado en funcion revisarContactos(). Pensar como implementar dicho reporte en Tasker.
 
 //Falta implementar mensaje con cambio de estado
 
-//Falta implementar que cuando la alarma esta activada solo funciona desactivar. state.alarmaOn
+//Falta comprobar que cuando la alarma esta activada solo funciona desactivar. state.alarmaOn
 private def armadoAfuera() {
     log.debug("armadoAfuera")
-    log.debug("${revisarContactos()}")
-    if (revisarContactos() && !atomicState.afuera){
+    log.debug("Alarma se puede armar ${revisarContactos()}")
+    log.debug("Alarma esta sonando!!!! ${state.alarmaOn}")
+    if (revisarContactos() && !atomicState.afuera && !atomicState.alarmaOn){
         armadoAlarma(true)
     }    
 }
 private def armadoCasa() {
     log.debug("armadoCasa")
-    if (revisarContactos() && !atomicState.casa){
+    log.debug("Alarma se puede armar ${revisarContactos()}")
+    log.debug("Alarma esta sonando!!!! ${state.alarmaOn}")
+    if (revisarContactos() && !atomicState.casa && !atomicState.alarmaOn){
         armadoAlarma(false)
     }
 }
@@ -511,27 +518,29 @@ private def desarmado() {
 }
 private def panico() {
     log.debug("panico")
-    if (!atomicState.panico){
+    log.debug("Alarma esta sonando!!!! ${state.alarmaOn}")
+    if (!atomicState.panico && !state.alarmaOn){
         activarAlarma()
+         //mensaje push avisando que es boton de panico!!!
     }
 }
-//Falta push, SMS y pushbullet
+//Falta push y SMS. Pensar como integrar en Tasker.
 private def activarAlarma(nombreDispositivo) {
     log.debug("BEE DO BEE DO BEE DO")
     state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
-    
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
     log.debug("lucesOn: ${lucesOn}")
     if (lucesOn) {
         lucesOn*.on()
         state.offLuces = lucesOn.collect {it.id}
     }
+    //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
     def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
     log.debug("${msg}")
-
 }
+
 private def desactivarAlarma() {
     log.debug("BANANA")
     state.afuera = false
@@ -539,8 +548,8 @@ private def desactivarAlarma() {
     state.desarmado = true
     state.panico = false
     
+    state.alarmaOn = false
     settings.sirena*.off()
-    
     def lucesOff = state.offLuces
     if (lucesOff) {
         log.debug("lucesOff: ${lucesOff}")
@@ -551,9 +560,7 @@ private def desactivarAlarma() {
         }
         state.offLuces = []
     }
-    
-    
-    
+    //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
 }
 //Armado Afuera = true y Armado Casa = false
 private def armadoAlarma(tipo){
@@ -566,6 +573,7 @@ private def armadoAlarma(tipo){
         state.afuera = false
         state.casa = true
     }
+    //Implementar mensaje tipo push. Pensar como realizarlo en Tasker.
     log.debug("Alarma esta armada ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
 }
 //Falta mandar un msg explicando razon de porque no se pudo armar la alarma
@@ -576,6 +584,7 @@ private def revisarContactos(){
             log.debug("${it.displayName} esta abierto, no se puede continuar con proceso armado")    
         }
         return false
+        //implementar mensaje tipo push. Pensar como realizarlo en Tasker.
     }
     return true
 }
