@@ -352,6 +352,7 @@ private def initialize() {
     state.desarmado = true
     //Mapeo de la alarma
     state.alarma = []
+    state.offSwitches = []
     //Mapeo sensores y suscripcion a eventos
     log.debug("${statusAlarma()}")
     sensores()
@@ -403,7 +404,7 @@ private def controlRemoto() {
         subscribe(settings.remoto, "button", onControlRemoto)
     }
 }
-
+//Nombre Boton Simulado debe ser mismo que funciones definidas
 private def botonSimulado() {
     log.debug("botonSimulado()")
     if (settings.botonAfuera) {
@@ -422,6 +423,7 @@ private def botonSimulado() {
 //Cuando ocurre un evento de contact.open, reviso 
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
+//** Falta implementar un delay (inputDelay) para la puerta principal (inputPuerta)
 def onContacto(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
@@ -432,13 +434,13 @@ def onContacto(evt) {
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
-        activarAlarma()    
+        activarAlarma(evt.displayName)    
     }
 }
-
 //Cuando ocurre un evento de motion.presence, reviso 
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
+//No existe delay en este caso, dado que siempre tiene que sonar la alarma
 def onMovimiento(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def movimientoOk = state.sensorMovimiento.find() { it.idSensor == evt.deviceId }
@@ -449,12 +451,11 @@ def onMovimiento(evt) {
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
-        activarAlarma()    
+        activarAlarma(evt.displayName)    
     }
 }
-
 //Cuando se aprieta un boton del control remoto, 
-//ejecutando un cambio? del estado de la alarma.
+//ejecutando un cambio del estado de la alarma.
 def onControlRemoto(evt) {
     log.debug("onControlRemoto")
     if (!evt.data) {
@@ -481,16 +482,19 @@ def onControlRemoto(evt) {
 def onBotonSimulado(evt) {
     "${evt.displayName}"()
 }
-
+//Funciones (atomicState) evitan que se ejecute una acción de nuevo
+//Falta implementar funcion que revise que los contactos esten "open"
+//al momento de armado alarma. En dicho caso, se debe parar proceso.
 private def armadoAfuera() {
     log.debug("armadoAfuera")
-    if (!atomicState.afuera){
+    log.debug("${revisarContactos()}")
+    if (revisarContactos() && !atomicState.afuera){
         armadoAlarma(true)
-    }
+    }    
 }
 private def armadoCasa() {
     log.debug("armadoCasa")
-    if (!atomicState.casa){
+    if (revisarContactos() && !atomicState.casa){
         armadoAlarma(false)
     }
 }
@@ -507,8 +511,20 @@ private def panico() {
     }
 }
 
-private def activarAlarma() {
+private def activarAlarma(nombreDispositivo) {
     log.debug("BEE DO BEE DO BEE DO")
+    settings.sirena*.strobe()
+    settings.camaras*.take()
+    // Only turn on those switches that are currently off
+    def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
+    log.debug("lucesOn: ${lucesOn}")
+    if (lucesOn) {
+        lucesOn*.on()
+        state.offSwitches = switchesOn.collect {it.id}
+    }
+    def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
+    log.debug("${msg}")
+
 }
 private def desactivarAlarma() {
     log.debug("BANANA")
@@ -524,11 +540,20 @@ private def armadoAlarma(tipo){
         state.afuera = false
         state.casa = true
     }
-    
-    log.debug("Activar Alarma ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
-    
-    
+    log.debug("Alarma esta armada ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
 }
+
+private def revisarContactos(){
+    def puertaAbierta = settings.contacto.findAll {it?.latestValue("contact").contains("open")}
+    if (puertaAbierta.size() > 0) {
+        puertAbierta.each() {
+            log.debug("${it.displayName} esta abierto, no se puede continuar con proceso armado")    
+        }
+        return false
+    }
+    return true
+}
+
 private def statusAlarma(){
     def statusAlarmaAhora
     if(state.afuera) {
