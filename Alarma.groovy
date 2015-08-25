@@ -637,7 +637,7 @@ private def modificaSwitchSimulado(armedAway,armedHome,notArmed,panicState) {
         settings.switchCasa.off()
     }
     
-    if (disarm) {
+    if (notArmed) {
         settings.switchDesactivar.on()
     }else {
         settings.switchDesactivar.off()
