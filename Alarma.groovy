@@ -32,7 +32,7 @@ definition(
     author: "rodrigo@experthome.cl",
     description: "Sistema de alarma integrado a Experthome.cl. Permite monitoreo de casa, " +
                  "y activación de sirenas, luces, luces, notificación sms y camaras foscam. " +
-                 "Incluye integración tasker para keypad android (via botones/switch virtuales) y control remoto.",
+                 "Incluye integración tasker para keypad android y Alexa (via switch virtuales) y control remoto.",
     category: "Safety & Security",
     
     iconUrl: "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
@@ -173,30 +173,30 @@ def pageOpcionesActivacion() {
         multiple:   true,
         required:   false
     ]
-    def inputBotonAfuera = [
-        name:       "botonAfuera",
-        type:       "capability.button",
+    def inputSwitchAfuera = [
+        name:       "switchAfuera",
+        type:       "capability.switch",
         title:      "Afuera?",
         multiple:   true,
         required:   false
     ]
-    def inputBotonCasa = [
-        name:       "botonCasa",
-        type:       "capability.button",
+    def inputSwitchCasa = [
+        name:       "switchCasa",
+        type:       "capability.switch",
         title:      "En Casa?",
         multiple:   true,
         required:   false
     ]
-    def inputBotonDesactivar = [
-        name:       "botonDesactivar",
-        type:       "capability.button",
+    def inputSwitchDesactivar = [
+        name:       "switchDesactivar",
+        type:       "capability.switch",
         title:      "Desarmado?",
         multiple:   true,
         required:   false
     ]
-    def inputBotonPanico = [
-        name:       "botonPanico",
-        type:       "capability.button",
+    def inputSwitchPanico = [
+        name:       "switchPanico",
+        type:       "capability.switch",
         title:      "Panico?",
         multiple:   true,
         required:   false
@@ -217,12 +217,12 @@ def pageOpcionesActivacion() {
            paragraph resumenRemotos
            input inputRemotes
         }
-        section("Botones Simulados para Keypad") {
+        section("Switch Simulados para Keypad + Alexa") {
            paragraph resumenBoton
-           input inputBotonAfuera
-           input inputBotonCasa
-           input inputBotonDesactivar
-           input inputBotonPanico
+           input inputSwitchAfuera
+           input inputSwitchCasa
+           input inputSwitchDesactivar
+           input inputSwitchPanico
         }
     }
 }
@@ -354,13 +354,13 @@ private def initialize() {
     state.panico = false
     state.desarmado = true
     //Mapeo de la alarma
-    state.alarma = []
+    state.alarmaOn = false
     state.offSwitches = []
     //Mapeo sensores y suscripcion a eventos
     log.debug("${statusAlarma()}")
     sensores()
     controlRemoto()
-    botonSimulado()
+    switchSimulado()
 }
 
 //mapeo sensores y suscripcion
@@ -407,20 +407,21 @@ private def controlRemoto() {
         subscribe(settings.remoto, "button", onControlRemoto)
     }
 }
-//Nombre Boton Simulado debe ser mismo que funciones definidas
-private def botonSimulado() {
-    log.debug("botonSimulado()")
-    if (settings.botonAfuera) {
-        subscribe(settings.botonAfuera,"button",onBotonSimulado)
+//Nombre Switch Simulado debe ser mismo que funciones definidas
+//Tiene que estar en ingles para Alexa (Away, Home & Panic). No se permite desactivacion por Alexa.
+private def switchSimulado() {
+    log.debug("switchSimulado()")
+    if (settings.switchAfuera) {
+        subscribe(settings.switchAfuera,"switch.on",onSwitchSimulado)
     }
-    if (settings.botonCasa) {
-        subscribe(settings.botonCasa,"button",onBotonSimulado)
+    if (settings.switchCasa) {
+        subscribe(settings.switchCasa,"switch.on",onSwitchSimulado)
     }
-    if (settings.botonDesactivar) {
-        subscribe(settings.botonDesactivar,"button",onBotonSimulado)
+    if (settings.switchDesactivar) {
+        subscribe(settings.switchDesactivar,"switch.on",onSwitchSimulado)
     }
-    if (settings.botonPanico) {
-        subscribe(settings.botonPanico,"button",onBotonSimulado)
+    if (settings.switchPanico) {
+        subscribe(settings.switchPanico,"switch.on",onSwitchSimulado)
     }
 }
 //Cuando ocurre un evento de contact.open, reviso 
@@ -434,6 +435,7 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
+    //Pensar en usar atomicState....
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
     || (contactoOk.tipoArmado = "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
@@ -446,11 +448,12 @@ def onContacto(evt) {
 //No existe delay en este caso, dado que siempre tiene que sonar la alarma
 def onMovimiento(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
-    def movimientoOk = state.sensorMovimiento.find() { it.idSensor == evt.deviceId }
+    def movimientoOk = state.sensorMovimiento.find() {it.idSensor == evt.deviceId}
     if (!movimientoOk) {
         log.warn ("No se encuentra el dispositivo de movimiento ${evt.deviceId}")
         return
     }
+    //Pensar en usar atomicState....
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
@@ -481,46 +484,46 @@ def onControlRemoto(evt) {
         
     }
 }
-//Nombre Boton Simulado debe ser mismo que funciones definidas
-def onBotonSimulado(evt) {
+//Nombre Switch Simulado debe ser mismo que funciones definidas
+def onSwitchSimulado(evt) {
     "${evt.displayName}"()
 }
+
+//*** Es necesario leer el estado de la alarma para ser reflejado en Tasker. 
+//*** La idea es usar las variables state.afuera... para que sean interpretadas por Tasker.
+//*** Siempre puedo leer el estado del switch......
+
 //Funciones (atomicState) evitan que se ejecute una acción de nuevo
-
-//Falta comprobar que funcion que revisarContactos este funcionando
-//Revisa que contactos esten "open" al momento de armado alarma. En dicho caso, se debe parar proceso.
-//Mensaje push debe ser enviado en funcion revisarContactos(). Pensar como implementar dicho reporte en Tasker.
-
-//Falta implementar mensaje con cambio de estado
-
-//Falta comprobar que cuando la alarma esta activada solo funciona desactivar. state.alarmaOn
+//***Falta comprobar que funcion que revisarContactos este funcionando
+//***Falta implementar mensaje con cambio de estado. Linkeado a variables state para Tasker??
+//***Falta comprobar que cuando la alarma esta activada solo funciona desactivar. state.alarmaOn
 private def armadoAfuera() {
-    log.debug("armadoAfuera")
-    log.debug("Alarma se puede armar ${revisarContactos()}")
-    log.debug("Alarma esta sonando!!!! ${state.alarmaOn}")
+    log.debug("Preparando armadoAfuera")
+    log.debug("Alarma se puede armar: ${revisarContactos()}")
+    log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
     if (revisarContactos() && !atomicState.afuera && !atomicState.alarmaOn){
         armadoAlarma(true)
     }    
 }
 private def armadoCasa() {
-    log.debug("armadoCasa")
+    log.debug("Preparando armadoCasa")
     log.debug("Alarma se puede armar ${revisarContactos()}")
-    log.debug("Alarma esta sonando!!!! ${state.alarmaOn}")
+    log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
     if (revisarContactos() && !atomicState.casa && !atomicState.alarmaOn){
         armadoAlarma(false)
     }
 }
 private def desarmado() {
-    log.debug("desarmado")
+    log.debug("Preparando desarmado")
     if (!atomicState.desarmado){
         desactivarAlarma()
     }
 }
 private def panico() {
     log.debug("panico")
-    log.debug("Alarma esta sonando!!!! ${state.alarmaOn}")
+    log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
     if (!atomicState.panico && !state.alarmaOn){
-        activarAlarma()
+        activarPanico()
          //mensaje push avisando que es boton de panico!!!
     }
 }
@@ -538,6 +541,22 @@ private def activarAlarma(nombreDispositivo) {
     }
     //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
     def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
+    log.debug("${msg}")
+}
+
+private def activarPanico() {
+    log.debug("PANICO!!!!")
+    state.alarmaOn = true
+    settings.sirena*.strobe()
+    settings.camaras*.take()
+    def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
+    log.debug("lucesOn: ${lucesOn}")
+    if (lucesOn) {
+        lucesOn*.on()
+        state.offLuces = lucesOn.collect {it.id}
+    }
+    //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
+    def msg = "Alarma en ${location.name}! - PANICO"
     log.debug("${msg}")
 }
 
@@ -560,7 +579,7 @@ private def desactivarAlarma() {
         }
         state.offLuces = []
     }
-    //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
+    //Implementar mensaje tipo push y SMS
 }
 //Armado Afuera = true y Armado Casa = false
 private def armadoAlarma(tipo){
