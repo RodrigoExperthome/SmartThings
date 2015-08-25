@@ -437,7 +437,7 @@ def onContacto(evt) {
     }
     //Pensar en usar atomicState....
     if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
-    || (contactoOk.tipoArmado = "Casa" && state.casa)) {
+    || (contactoOk.tipoArmado = "Afuera" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma(evt.displayName)    
     }
@@ -455,7 +455,7 @@ def onMovimiento(evt) {
     }
     //Pensar en usar atomicState....
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
-    || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
+    || (movimientoOk.tipoArmado == "Afuera" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma(evt.displayName)    
     }
@@ -472,14 +472,15 @@ def onControlRemoto(evt) {
     def button = data.buttonNumber?.toInteger()
     if (button) {
         log.debug("Boton ${button} fue ${evt.value}")
+        //Nombre en ingles para integracion con Alexa
         if (button == 1) {
-            armadoAfuera()
+            away()
         } else if (button==2) {
-            armadoCasa()
+            home()
         } else if (button==3) {
-            desarmado()
+            disarm()
         } else if (button==4) {
-            panico()
+            panic()
         }
         
     }
@@ -497,35 +498,39 @@ def onSwitchSimulado(evt) {
 //***Falta comprobar que funcion que revisarContactos este funcionando
 //***Falta implementar mensaje con cambio de estado. Linkeado a variables state para Tasker??
 //***Falta comprobar que cuando la alarma esta activada solo funciona desactivar. state.alarmaOn
-private def armadoAfuera() {
+private def away() {
     log.debug("Preparando armadoAfuera")
-    log.debug("Alarma se puede armar: ${revisarContactos()}")
-    log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
     if (revisarContactos() && !atomicState.afuera && !atomicState.alarmaOn){
         armadoAlarma(true)
-    }    
+    } else {
+        modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
+    }   
 }
-private def armadoCasa() {
+private def home() {
     log.debug("Preparando armadoCasa")
-    log.debug("Alarma se puede armar ${revisarContactos()}")
-    log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
     if (revisarContactos() && !atomicState.casa && !atomicState.alarmaOn){
         armadoAlarma(false)
-    }
+    } else {
+        modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
+    }   
 }
-private def desarmado() {
+private def disarm() {
     log.debug("Preparando desarmado")
     if (!atomicState.desarmado){
         desactivarAlarma()
-    }
+    } else {
+        modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
+    }   
 }
-private def panico() {
+private def panic() {
     log.debug("panico")
     log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
     if (!atomicState.panico && !state.alarmaOn){
         activarPanico()
          //mensaje push avisando que es boton de panico!!!
-    }
+    } else {
+        modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
+    }   
 }
 //Falta push y SMS. Pensar como integrar en Tasker.
 private def activarAlarma(nombreDispositivo) {
@@ -558,10 +563,11 @@ private def activarPanico() {
     //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
     def msg = "Alarma en ${location.name}! - PANICO"
     log.debug("${msg}")
+    modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
 }
 
 private def desactivarAlarma() {
-    log.debug("BANANA")
+    log.debug("Desarmado exitoso")
     state.afuera = false
     state.casa = false
     state.desarmado = true
@@ -579,6 +585,8 @@ private def desactivarAlarma() {
         }
         state.offLuces = []
     }
+    log.debug("Afuera: ${state.afuera}/Casa: ${state.casa}/Desarmada: ${state.desarmado}/Panico: ${state.panico}")
+    modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
     //Implementar mensaje tipo push y SMS
 }
 //Armado Afuera = true y Armado Casa = false
@@ -593,7 +601,13 @@ private def armadoAlarma(tipo){
         state.casa = true
     }
     //Implementar mensaje tipo push. Pensar como realizarlo en Tasker.
-    log.debug("Alarma esta armada ${state.afuera}/${state.casa}/${state.desarmado}/${state.panico}")
+    if (tipo){
+        log.debug("Alarma esta armada Afuera")
+    } else {
+        log.debug("Alarma esta armada Casa")
+    }
+    log.debug("Afuera: ${state.afuera}/Casa: ${state.casa}/Desarmada: ${state.desarmado}/Panico: ${state.panico}")
+    modificaSwitchSimulado (state.afuera, state.casa, state.desarmado, state.panico)
 }
 //Falta mandar un msg explicando razon de porque no se pudo armar la alarma
 private def revisarContactos(){
@@ -607,6 +621,35 @@ private def revisarContactos(){
     }
     return true
 }
+
+//Actualiza estado de switch simulados
+//Ojo con doble suscripcion....
+private def modificaSwitchSimulado(armedAway,armedHome,notArmed,panicState) {
+    if (armedAway) {
+        settings.switchAfuera.on()
+    }else {
+        settings.switchAfuera.off()
+    }
+    
+    if (armedHome) {
+        settings.switchCasa.on()
+    }else {
+        settings.switchCasa.off()
+    }
+    
+    if (disarm) {
+        settings.switchDesactivar.on()
+    }else {
+        settings.switchDesactivar.off()
+    }
+   
+   if (panicState) {
+        settings.switchPanico.on()
+    }else {
+        settings.switchPanico.off()
+    }
+}
+
 
 private def statusAlarma(){
     def statusAlarmaAhora
