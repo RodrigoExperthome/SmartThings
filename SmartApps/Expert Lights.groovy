@@ -104,7 +104,7 @@ def initialize() {
 		subscribe(settings.A_contact, "contact", onEventA)
 	}
 	if(A_presence) {
-		subscribe(settings.A_presence, "presence", onEventA)
+		subscribe(settings.A_presence, "presence.present", onEventA)
 	}
 }
 
