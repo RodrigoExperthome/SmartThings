@@ -1,2 +1,2 @@
 # SmartThings
-Lista de aplicaciones asociadas a SmartThings
+Lista de aplicaciones ExpertHome para SmartThings
