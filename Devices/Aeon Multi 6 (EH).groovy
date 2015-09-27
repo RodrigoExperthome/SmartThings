@@ -88,12 +88,19 @@ metadata {
 		valueTile("illuminance", "device.illuminance", inactiveLabel: false, width: 2, height: 2) {
 			state "luminosity", label:'${currentValue} ${unit}', unit:"lux"
 		}
+		valueTile("tamper","device.tamper", inactiveLabel: false, width: 2, height: 2) {
+			state "tamper",label:'tamper',icon:"st.motion.motion.active",backgroundColor:"#ff0000"
+                	state "clear",label:'clear',icon:"st.motion.motion.inactive",backgroundColor:"#00ff00"
+		}
 		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
+		valueTile("configure","device.configure",inactiveLabel: false, decoration: "flat") {
+			state "configure", label:'config', action:"configure", icon:"st.secondary.tools"
+		}
 
-		main(["motion", "temperature", "humidity", "illuminance"])
-		details(["motion", "temperature", "humidity", "illuminance", "battery"])
+		main(["motion", "temperature", "humidity", "illuminance","tamper"])
+		details(["motion", "temperature", "humidity", "illuminance","tamper","battery","configure"])
 	}
 }
 
