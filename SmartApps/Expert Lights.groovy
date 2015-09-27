@@ -1,19 +1,15 @@
 /**
- *  Controlador Luces v1.0
- *
  *  Author: Expert Home
  *  Date: 2015-07-15
- *	Based on Lightning Director v2.9.4
  */
 definition(
-    name: "Controlador Luces",
+    name: "Expert Lights",
     namespace: "ExpertHome",
     author: "Expert Home",
     description: "Controlador de luces",
     category: "Convenience",
-    //Colocar iconos ExpertHome disponibles
-    iconUrl: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact.png",
-    iconX2Url: "https://s3.amazonaws.com/smartapp-icons/Meta/window_contact@2x.png"
+    iconUrl: "http://experthome.cl/wp-content/uploads/2015/08/Lightning_20.png",
+    iconX2Url: "http://experthome.cl/wp-content/uploads/2015/08/Lightning_20.png"
 )
 
 preferences {
@@ -26,13 +22,6 @@ def pageSetupScenarioA() {
         name:       "A_switches",
         type:       "capability.switch",
         title:      "Luces...",
-        multiple:   true,
-        required:   false
-    ]
-    def inputDimmersA = [
-        name:       "A_dimmers",
-        type:       "capability.switchLevel",
-        title:      "Dimmer...",
         multiple:   true,
         required:   false
     ]
@@ -50,20 +39,18 @@ def pageSetupScenarioA() {
         multiple:   true,
         required:   false
     ]
-    
+    def inputPresenceA = [
+        name:       "A_presence",
+        type:       "capability.presenceSensor",
+        title:      "Sensores de presencia...",
+        multiple:   true,
+        required:   false
+    ]
     def inputModeA = [
         name:       "A_mode",
         type:       "mode",
         title:      "Solo durante los siguientes modos...",
         multiple:   true,
-        required:   false
-    ]
-    def inputLevelA = [
-        name:       "A_level",
-        type:       "enum",
-        options: [[10:"10%"],[20:"20%"],[30:"30%"],[40:"40%"],[50:"50%"],[60:"60%"],[70:"70%"],[80:"80%"],[90:"90%"],[100:"100%"]],
-        title:      "Para los dimmer, usa la siguiente intensidad...",
-        multiple:   false,
         required:   false
     ]
     def inputTurnOffA = [
@@ -73,33 +60,29 @@ def pageSetupScenarioA() {
         multiple:   false,
         required:   false
     ]
-    
    def pageProperties = [
         name:       "pageSetupScenarioA",
         nextPage:   null,
         install:    true,
         uninstall:  true
     ]
-
     return dynamicPage(pageProperties) {
-		section([title:"Nombra el escenario", mobileOnly:true]) {
-           label title:"Nombre", required:false
+	section([title:"Nombra el escenario", mobileOnly:true]) {
+        	label title:"Nombre", required:false
         }
-
-		section("Use los siguientes...") { 	
-            input inputMotionA
-			input inputContactA
+	section("Use los siguientes...") { 	
+        	input inputMotionA
+		input inputContactA
+		input inputPresenceA
      	}
-        section("Para controlar los siguientes...") {   
-            input inputDimmersA
-            input inputLightsA         
+        section("Para controlar...") {   
+        	input inputLightsA         
       	}
-		section("Ajustes generales") {
-            input inputLevelA
-            input inputTurnOffA
-            input inputModeA     
+	section("Ajustes generales") {
+        	input inputTurnOffA
+       		input inputModeA     
         }      
-	}
+    }
 }
 
 def installed() {
@@ -120,13 +103,16 @@ def initialize() {
 	if(A_contact) {
 		subscribe(settings.A_contact, "contact", onEventA)
 	}
+	if(A_presence) {
+		subscribe(settings.A_presence, "presence", onEventA)
+	}
 }
 
 def onEventA(evt) {
 	if (!A_mode || A_mode.contains(location.mode))  {
     	def A_levelOn = A_level as Integer
-		if (getInputOk(A_motion, A_contact)) {
-            log.debug("Motion, or Door Open Detected Running")           
+		if (getInputOk(A_motion, A_contact,A_presence)) {
+            log.debug("Movimiento, Contacto o Presencia detectada")           
             if (state.A_timerStart){
             	log.debug("Cancelando proceso de delay, dado que aparecio nuevo evento")
             	unschedule(apagarLuz)
@@ -165,9 +151,10 @@ def onEventA(evt) {
 }
 
 //Procedimientos comunes
-private getInputOk(motion, contact) {
+private getInputOk(motion, contact, presence) {
 	def motionDetected = false
 	def contactDetected = false
+	def presenceDetected = false
 	def result = false
 
 	if (motion) {
@@ -182,7 +169,13 @@ private getInputOk(motion, contact) {
             log.debug("Contact valor = ${contact.latestValue("contact")}")
 		}
 	}
-	result = motionDetected || contactDetected 
+	if (presence) {
+		if (presence.latestValue("presence").contains("present")) {
+			presenceDetected = true
+            log.debug("Presence valor = ${presence.latestValue("presence")}")
+		}
+	}
+	result = motionDetected || contactDetected || presenceDetected
 	result
 }
 
