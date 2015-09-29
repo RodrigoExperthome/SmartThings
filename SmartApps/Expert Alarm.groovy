@@ -27,16 +27,15 @@
 import groovy.json.JsonSlurper
 
 definition(
-    name: "Alarma ExpertHome",
-    namespace: "Experthome",
-    author: "rodrigo@experthome.cl",
-    description: "Sistema de alarma integrado a Experthome.cl. Permite monitoreo de casa, " +
-                 "y activación de sirenas, luces, luces, notificación sms y camaras foscam. " +
-                 "Incluye integración tasker para keypad android y Alexa (via switch virtuales) y control remoto.",
-    category: "Safety & Security",
-    
-    iconUrl: "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
-    iconX2Url: "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
+    name:           "Alarma ExpertHome",
+    namespace:      "Experthome",
+    author:         "rodrigo@experthome.cl",
+    description:    "Sistema de alarma integrado a Experthome.cl. Permite monitoreo de casa, " +
+                    "y activación de sirenas, luces, luces, notificación sms y camaras foscam. " +
+                    "Incluye integración tasker para keypad android y Alexa (via switch virtuales) y control remoto.",
+    category:       "Safety & Security",
+    iconUrl:        "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
+    iconX2Url:      "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
 )
 
 preferences {
@@ -45,11 +44,9 @@ preferences {
     page name:"pageOpcionesSensor" 
     page name:"pageOpcionesActivacion"
     page name:"pageOpcionesAlarma" 
-    
 }
 
 def pageStatus() {
-    
     def alarmStatus = "La Alarma está ${statusAlarma()}"
     def pageProperties = [
         name:       "pageStatus",
@@ -58,7 +55,7 @@ def pageStatus() {
         uninstall:  true
     ]
     return dynamicPage(pageProperties) {
-        section("Estado") {
+        section("Estado Alarma") {
             paragraph alarmStatus
         }
         section("Setup Menu") {
@@ -588,9 +585,6 @@ private def armadoAlarma(tipo){
         state.afuera = false
         state.casa = true
     }
-    //Cambio de estado de switches, ie, es necesario actualizar switches
-    
-    
     //Implementar mensaje tipo push. Pensar como realizarlo en Tasker.
     if (tipo){
         log.debug("Alarma esta armada Afuera")
@@ -611,35 +605,6 @@ private def revisarContactos(){
     }
     return true
 }
-
-//Actualiza estado de switch simulados
-//Ojo con doble suscripcion....
-private def modificaSwitchSimulado(armedAway,armedHome,notArmed,panicState) {
-    if (armedAway) {
-        settings.switchAfuera.on()
-    }else {
-        settings.switchAfuera.off()
-    }
-    
-    if (armedHome) {
-        settings.switchCasa.on()
-    }else {
-        settings.switchCasa.off()
-    }
-    
-    if (notArmed) {
-        settings.switchDesactivar.on()
-    }else {
-        settings.switchDesactivar.off()
-    }
-   
-   if (panicState) {
-        settings.switchPanico.on()
-    }else {
-        settings.switchPanico.off()
-    }
-}
-
 private def statusAlarma(){
     def statusAlarmaAhora
     if(state.afuera) {
