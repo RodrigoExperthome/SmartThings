@@ -126,7 +126,8 @@ def onEventA(evt) {
             	    state.lucesOff = offLuces.collect{it.id}
                     offLuces*.on()
                     //Eventos de presencia no tienen cierre, por tanto deben tener delay.
-                    if (getPresence) {
+                    if (getPresence(A_presence)) {
+                    	log.debug("Proceso de presencia con delay obligado")   
                     	runIn(A_turnOff * 60, "apagarLuz")
                 		state.A_timerStart = true	
                     }
@@ -194,11 +195,11 @@ private getPresence(presence) {
 
 private apagarLuz() {
 	def lucesOn_Off = state.lucesOff
-    settings.A_switches.each() {
+	log.debug ("Luces a apagar son: '${lucesOn_Off}'")
+    	settings.A_switches.each() {
     	if (lucesOn_Off.contains (it.id)){
         	it.off()
         }
-    
     }
     state.A_timerStart = false
     state.killedProcess = false
