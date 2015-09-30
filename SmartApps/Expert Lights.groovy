@@ -13,55 +13,54 @@ definition(
 )
 
 preferences {
-    page name: "pageSetupScenarioA"
+    page name: "pageSetup"
 }
 
-// Definir escenario A
-def pageSetupScenarioA() {
-    def inputLightsA = [
-        name:       "A_switches",
+def pageSetup() {
+    def inputLights = [
+        name:       "luces",
         type:       "capability.switch",
         title:      "Luces...",
         multiple:   true,
         required:   false
     ]
-    def inputMotionA = [
-        name:       "A_motion",
+    def inputMotion = [
+        name:       "movimiento",
         type:       "capability.motionSensor",
         title:      "Sensores de movimiento...",
         multiple:   true,
         required:   false
     ]
-    def inputContactA = [
-        name:       "A_contact",
+    def inputContact = [
+        name:       "contacto",
         type:       "capability.contactSensor",
         title:      "Sensores de contacto...",
         multiple:   true,
         required:   false
     ]
-    def inputPresenceA = [
-        name:       "A_presence",
+    def inputPresence = [
+        name:       "presencia",
         type:       "capability.presenceSensor",
         title:      "Sensores de presencia...",
         multiple:   true,
         required:   false
     ]
-    def inputModeA = [
-        name:       "A_mode",
+    def inputMode = [
+        name:       "modo",
         type:       "mode",
         title:      "Solo durante los siguientes modos...",
         multiple:   true,
         required:   false
     ]
-    def inputTurnOffA = [
-        name:       "A_turnOff",
+    def inputDelay = [
+        name:       "delay",
         type:       "number",
         title:      "Retrasar apagado (minutos)...",
         multiple:   false,
         required:   true
     ]
    def pageProperties = [
-        name:       "pageSetupScenarioA",
+        name:       "pageSetup",
         nextPage:   null,
         install:    true,
         uninstall:  true
@@ -71,16 +70,16 @@ def pageSetupScenarioA() {
         	label title:"Nombre", required:false
     	}
 		section("Use los siguientes...") { 	
-        	input inputMotionA
-			input inputContactA
-			input inputPresenceA
+        	input inputMotion
+		input inputContact
+		input inputPresence
     	}
     	section("Para controlar...") {   
-       		input inputLightsA         
+       		input inputLights         
     	}
 		section("Ajustes generales") {
-        	input inputTurnOffA
-       		input inputModeA     
+        	input inputDelay
+       		input inputMode     
         }      
     }
 }
@@ -97,50 +96,50 @@ def updated() {
 
 def initialize() {
 	state.lucesOff = []
-	if(A_motion) {
-		subscribe(settings.A_motion, "motion", onEventA)
+	if(movimiento) {
+		subscribe(settings.movimiento, "motion", onEvent)
 	}
-	if(A_contact) {
-		subscribe(settings.A_contact, "contact", onEventA)
+	if(contacto) {
+		subscribe(settings.contacto, "contact", onEvent)
 	}
-	if(A_presence) {
-		subscribe(settings.A_presence, "presence.present", onEventA)
+	if(presencia) {
+		subscribe(settings.presencia, "presence.present", onEvent)
 	}
 }
 
-def onEventA(evt) {
-	if (!A_mode || A_mode.contains(location.mode))  {
-    	if (getInputOk(A_motion, A_contact,A_presence)) {
+def onEvent(evt) {
+	if (!modo || modo.contains(location.mode))  {
+    	if (getInputOk(movimiento, contacto, presencia)) {
         	log.debug("Movimiento, Contacto o Presencia detectada")           
-            if (state.A_timerStart){
+            if (state.timerStart){
             	log.debug("Cancelando proceso de delay, dado que aparecio nuevo evento")
             	unschedule(apagarLuz)
-            	state.A_timerStart = false
+            	state.timerStart = false
                 state.killedProcess = true
         	} else {
             	if (state.killedProcess) {
             	// No hace nada. Implementar en negativo???	  
             	} else {
-                	def offLuces = settings.A_switches.findAll {it?.latestValue("switch").contains("off")}
+                def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
                     log.debug("Las luces apagadas al iniciar la app son : '${offLuces}'")             	
             	    state.lucesOff = offLuces.collect{it.id}
                     offLuces*.on()
                     //Eventos de presencia no tienen cierre, por tanto deben tener delay.
-                    if (getPresence(A_presence)) {
+                    if (getPresence(presencia)) {
                     	log.debug("Proceso de presencia con delay obligado")   
-                    	runIn(A_turnOff * 60, "apagarLuz")
-                		state.A_timerStart = true	
+                    	runIn(delay * 60, "apagarLuz")
+                		state.timerStart = true	
                     }
                 }
             }
       	} else {
-        	if (settings.A_turnOff) {
-            	log.debug("Activando proceso de delay '${A_turnOff}' minutos ")
+        	if (settings.delay) {
+            	log.debug("Activando proceso de delay '${delay}' minutos ")
             	if (state.killedProcess) {
                 	log.debug("Proceso original no terminado... luces a apagar no cambian ")  
                 }
-                runIn(A_turnOff * 60, "apagarLuz")
-                state.A_timerStart = true
+                runIn(delay * 60, "apagarLuz")
+                state.timerStart = true
             } else {
                 log.debug("Apagando luz inmediatamente (no hay delay)")
                 apagarLuz()
@@ -196,12 +195,12 @@ private getPresence(presence) {
 private apagarLuz() {
 	def lucesOn_Off = state.lucesOff
 	log.debug ("Luces a apagar son: '${lucesOn_Off}'")
-    	settings.A_switches.each() {
+    	settings.luces.each() {
     	if (lucesOn_Off.contains (it.id)){
         	it.off()
         }
     }
-    state.A_timerStart = false
+    state.timerStart = false
     state.killedProcess = false
 }
 
