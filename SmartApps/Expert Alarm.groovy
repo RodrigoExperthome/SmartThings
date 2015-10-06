@@ -1,10 +1,8 @@
 /**
  *  Expert Alarm
  *
- *  Version 1.0.0 (8/12/2015)
- *  Inspired in SmartAlarm by statusbits, but recoded to simplify logics, and enable 
- *  better integration with Android Tasker Keypad
- *
+ *  Version 1.0.0 (06/Oct/2015)
+ *  
  *  The latest version of this file can be found on GitHub at:
  *  --------------------------------------------------------------------------
  *
@@ -56,7 +54,7 @@ def pageStatus() {
         section("Estado Alarma") {
             paragraph alarmStatus
         }
-        section("Setup Menu") {
+        section("Menu") {
             href "pageSensores", title:"Selecciona sensores", description:"Toca para abrir"
             href "pageOpcionesSensor", title:"Configura activacion", description:"Toca para abrir"
             href "pageOpcionesActivacion", title:"Opciones de activacion", description:"Toca para abrir"
