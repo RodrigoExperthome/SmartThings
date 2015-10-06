@@ -131,7 +131,7 @@ def pageArmedStay() {
     }
 }
 def pageOpcionesAlarma() {
-    log.debug("pageOpcionesAlarma)
+    log.debug("pageOpcionesAlarma")
     def inputSirena = [
         name:           "sirena",
         type:           "capability.alarm",
@@ -207,7 +207,7 @@ def pageOpcionesAlarma() {
     }
 }
 def pageOpcionesActivacion() {
-    log.debug("pageOpcionesActivacion)
+    log.debug("pageOpcionesActivacion")
     def inputModoAfuera = [
         name:       "modosAfuera",
         type:       "mode",
@@ -553,7 +553,7 @@ private def revisarContactos(){
 */
 
 private def statusAlarma(){
-    def statusAlarmaAhora == "No instalada"
+    def statusAlarmaAhora = "No_instalada"
     if(state.afuera) {
         statusAlarmaAhora = "Status - Armada Afuera"
     }
