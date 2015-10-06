@@ -75,21 +75,18 @@ def pageArmedAway() {
         type:       "capability.contactSensor",
         title:      "Sensores de puerta/ventana",
         multiple:   true,
-        defaultValue: true,
         required:   false
-        
     ]
     def inputMotionAway = [
         name:       "movimientoArmedAway",
         type:       "capability.motionSensor",
         title:      "Sensores de movimiento",
         multiple:   true,
-        defaultValue: true,
         required:   false
     ]
     def pageProperties = [
         name:       "pageArmedAway",
-        nextPage:   "pageArmedStay",
+        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -154,6 +151,12 @@ def pageOpcionesAlarma() {
         multiple:       true,
         required:       false
     ]
+    def inputPush = [
+        name:           "pushMessage",
+        type:           "bool",
+        title:          "Mensaje Push?",
+        defaultValue:   true
+    ]
     def inputPhone1 = [
         name:           "phone1",
         type:           "phone",
@@ -198,7 +201,7 @@ def pageOpcionesAlarma() {
         section("Camaras") {
             input inputCamaras
         }
-        section("Mensajes de Texto") {
+        section("Mensajes") {
             input inputPhone1
             input inputPhone2
         }
