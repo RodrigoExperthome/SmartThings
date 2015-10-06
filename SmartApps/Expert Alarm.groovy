@@ -298,12 +298,13 @@ private def initialize() {
     state.alarmaOn = false
     state.offSwitches = []
     //Mapeo sensores y suscripcion a eventos
-    log.debug("${statusAlarma()}")
-    sensores()
-    controlRemoto()
-    switchSimulado()
+    //log.debug("${statusAlarma()}")
+    //sensores()
+    //controlRemoto()
+    //switchSimulado()
 }
 
+/**
 //mapeo sensores y suscripcion
 private def sensores() {
     log.debug("sensores()")
@@ -549,6 +550,8 @@ private def revisarContactos(){
     }
     return true
 }
+*/
+
 private def statusAlarma(){
     def statusAlarmaAhora == "No instalada"
     if(state.afuera) {
