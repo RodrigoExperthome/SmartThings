@@ -26,10 +26,10 @@
 import groovy.json.JsonSlurper
 
 definition(
-    name:           "Alarma ExpertHome",
-    namespace:      "Experthome",
+    name:           "ExpertAlarm",
+    namespace:      "ExpertHome",
     author:         "rodrigo@experthome.cl",
-    description:    "Sistema de alarma integrado a Experthome.cl",
+    description:    "Sistema de alarma integrado a experthome.cl",
     category:       "Safety & Security",
     iconUrl:        "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
     iconX2Url:      "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
@@ -39,8 +39,8 @@ preferences {
     page name:"pageInicio"
     page name:"pageArmedAway" 
     page name:"pagedArmedStay" 
+    page name:"pageOpcionesAlarma"
     page name:"pageOpcionesActivacion"
-    page name:"pageOpcionesAlarma" 
 }
 
 def pageInicio() {
@@ -56,10 +56,10 @@ def pageInicio() {
             paragraph alarmStatus
         }
         section("Opciones ExpertAlarm") {
-            href "pageArmedAway", title:"Sensores Armado Afuera"
-            href "pageArmedStay", title:"Sensores Armado Casa"
-            href "pageOpcionesAlarma", title:"Opciones de Alerta y Notificaciones"
-            href "pageOpcionesActivacion", title:"Opciones Activación Alarma"
+            href "pageArmedAway", title:"Armado Afuera", description:"Toca para abrir"
+            href "pageArmedStay", title:"Armado Casa", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Alerta y Notificaciones", description:"Toca para abrir"
+            href "pageOpcionesActivacion", title:"Activación Alarma", description:"Toca para abrir"
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
@@ -69,25 +69,27 @@ def pageInicio() {
 def pageArmedAway() {
     log.debug("pageArmedAway")
     def resumenArmedAway = 
-        "Selección de sensores a usar para Armado Afuera. \n\n" +
-        "Por default se consideran sensores de contacto y movimiento."
+        "Selección de sensores a usar para Armado Afuera."
     def inputContactAway = [
         name:       "contactoArmedAway",
         type:       "capability.contactSensor",
         title:      "Sensores de puerta/ventana",
         multiple:   true,
+        defaultValue: true,
         required:   false
+        
     ]
     def inputMotionAway = [
         name:       "movimientoArmedAway",
         type:       "capability.motionSensor",
         title:      "Sensores de movimiento",
         multiple:   true,
+        defaultValue: true,
         required:   false
     ]
     def pageProperties = [
         name:       "pageArmedAway",
-        nextPage:   "pageInicio",
+        nextPage:   "pageArmedStay",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -101,8 +103,7 @@ def pageArmedAway() {
 def pageArmedStay() {
     log.debug("pageArmedStay()")
     def resumenArmedStay = 
-        "Selección de sensores a usar para Armado Casa " +
-        "Por default se consideran solo sensores de contacto"
+        "Selección de sensores a usar para Armado Casa."
     def inputContactStay = [
         name:       "contactoArmedStay",
         type:       "capability.contactSensor",
@@ -290,9 +291,9 @@ def updated() {
 private def initialize() {
     //Estado inicial de alarma
     state.afuera = false
-    state.casa = true
+    state.casa = false
     state.panico = false
-    state.desarmado = false
+    state.desarmado = true
     //Mapeo y revision de la alarma
     state.alarmaOn = false
     state.offSwitches = []
