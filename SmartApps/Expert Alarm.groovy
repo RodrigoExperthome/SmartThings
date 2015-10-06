@@ -36,17 +36,17 @@ definition(
 )
 
 preferences {
-    page name:"pageStatus"
-    page name:"pageSensores" 
-    page name:"pageOpcionesSensor" 
+    page name:"pageInicio"
+    page name:"pageArmedAway" 
+    page name:"pagedArmedStay" 
     page name:"pageOpcionesActivacion"
     page name:"pageOpcionesAlarma" 
 }
 
-def pageStatus() {
+def pageInicio() {
     def alarmStatus = "La Alarma está ${statusAlarma()}"
     def pageProperties = [
-        name:       "pageStatus",
+        name:       "pageInicio",
         nextPage:   null,
         install:    true,
         uninstall:  true
@@ -55,99 +55,163 @@ def pageStatus() {
         section("Estado Alarma") {
             paragraph alarmStatus
         }
-        section("Menu") {
-            href "pageSensores", title:"Selecciona sensores", description:"Toca para abrir"
-            href "pageOpcionesSensor", title:"Configura activacion", description:"Toca para abrir"
-            href "pageOpcionesActivacion", title:"Opciones de activacion", description:"Toca para abrir"
-            href "pageOpcionesAlarma", title:"Opciones de alarma", description:"Toca para abrir"
+        section("Opciones ExpertAlarm") {
+            href "pageArmedAway", title:"Seleccionar Sensores Armado Afuera", description:"Toca para abrir"
+            href "pageArmedStay", title:"Seleccionar Sensores Armado Casa", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Seleccionar Opciones de Alerta y Notificaciones  ", description:"Toca para abrir"
+            href "pageOpcionesActivacion", title:"Seleccionar Opciones Activación Alarma", description:"Toca para abrir"
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
         }
     }
 }
-
-def pageSensores() {
-    log.debug("pageSensores()")
-    def inputContact = [
-        name:       "contacto",
+def pageArmedAway() {
+    log.debug("pageArmedAway")
+    def resumenArmedAway = 
+        "Selección de sensores a usar para Armado Afuera " +
+        "Por default se consideran sensores de contacto y movimiento"
+    def inputContactAway = [
+        name:       "contactoArmedAway",
         type:       "capability.contactSensor",
         title:      "Sensores de puerta/ventana",
         multiple:   true,
         required:   false
     ]
-    def inputMotion = [
-        name:       "movimiento",
+    def inputMotionAway = [
+        name:       "movimientoArmedAway",
         type:       "capability.motionSensor",
         title:      "Sensores de movimiento",
         multiple:   true,
         required:   false
     ]
     def pageProperties = [
-        name:       "pageSensores",
-        nextPage:   "pageStatus",
+        name:       "pageArmedAway",
+        nextPage:   "pageArmedStay",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
         section("Agrega/remueve sensores...") {
-            input inputContact
-            input inputMotion
+            paragraph resumenArmedAway
+            input inputContactAway
+            input inputMotionAway
         }
     }
 }
-def pageOpcionesSensor() {
-    log.debug("pageOpcionesSensor()")
-    def resumen = 
-        "Cada sensor se puede configurar como Afuera o Casa." +
-        "El armado Casa considera que puede haber movimiento dentro de la " +
-        "casa sin generar una activacion de alarma." +
-        "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y Casa."
+def pageArmedStay() {
+    log.debug("pageArmedStay")
+    def resumenArmedStay = 
+        "Selección de sensores a usar para Armado Casa " +
+        "Por default se consideran solo sensores de contacto"
+    def inputContactStay = [
+        name:       "contactoArmedStay",
+        type:       "capability.contactSensor",
+        title:      "Sensores de puerta/ventana",
+        multiple:   true,
+        required:   false
+    ]
+    def inputMotionStay = [
+        name:       "movimientoArmedStay",
+        type:       "capability.motionSensor",
+        title:      "Sensores de movimiento",
+        multiple:   true,
+        required:   false
+    ]
     def pageProperties = [
-        name:       "pageOpcionesSensor",
-        nextPage:   "pageStatus",
+        name:       "pageArmedStay",
+        nextPage:   "pageInicio",
         uninstall:  false
     ]
-    def tipoSensor = ["Afuera", "Casa"]
     return dynamicPage(pageProperties) {
-        section("Sensores") {
-            paragraph resumen
+        section("Agrega/remueve sensores...") {
+            paragraph resumenArmedStay
+            input inputContactStay
+            input inputMotionStay
         }
-        if (settings.contacto) {
-            section("Sensores Contacto") {
-                def devices = settings.contacto.sort {it.displayName}
-                devices.each() {
-                    def devId = it.id
-                    def displayName = it.displayName
-                    input "type_${devId}", "enum", title:displayName, metadata:[values:tipoSensor], defaultValue:"Afuera"
-                }
-            }
+    }
+}
+def pageOpcionesAlarma() {
+    log.debug("pageOpcionesAlarma)
+    def inputSirena = [
+        name:           "sirena",
+        type:           "capability.alarm",
+        title:          "Que sirenas?",
+        multiple:       true,
+        required:       false
+    ]
+    def inputLuces = [
+        name:           "luces",
+        type:           "capability.switch",
+        title:          "Que luces?",
+        multiple:       true,
+        required:       false
+    ]
+    def inputCamaras = [
+        name:           "camaras",
+        type:           "capability.imageCapture",
+        title:          "Que camaras?",
+        multiple:       true,
+        required:       false
+    ]
+    def inputPhone1 = [
+        name:           "phone1",
+        type:           "phone",
+        title:          "Envia a este numero",
+        required:       false
+    ]
+    def inputPhone2 = [
+        name:           "phone2",
+        type:           "phone",
+        title:          "Envia a este numero",
+        required:       false
+    ]
+    def inputPuertaPrincipal = [
+        name:       "contactoPuertaPrincipal",
+        type:       "capability.contactSensor",
+        title:      "Puerta Principal",
+        multiple:   false,
+        required:   false
+    ]
+    input inputDelay = [
+        name:           "inputDelay", 
+        type:           "enum", 
+        title:          "Retraso en Activacion (seg)", 
+        metadata:       [values:["30","45","60"]], 
+        defaultValue:   "30",
+        required:       false
+    ]    
+    def pageProperties = [
+        name:       "pageOpcionesAlarma",
+        nextPage:   "pageInicio",
+        uninstall:  false
+    ]
+    return dynamicPage(pageProperties) {
+        section("Acciones a realizar despues de una activación") {
         }
-        if (settings.movimiento) {
-            section("Sensores Movimiento") {
-                def devices = settings.movimiento.sort {it.displayName}
-                devices.each() {
-                    def devId = it.id
-                    def displayName = it.displayName
-                        input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor],defaultValue:"Casa"
-                }
-            }
+        section("Sirenas") {
+            input inputSirena
         }
-        section("Definir Puerta Principal...") {
-            input "inputPuerta","capability.contactSensor", title:"Puerta Principal", multiple:true, required: false
-            input "inputDelay", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
+        section("Luces a prender") {
+            input inputLuces
         }
-    }    
-}        
+        section("Camaras") {
+            input inputCamaras
+        }
+        section("Mensajes de Texto") {
+            input inputPhone1
+            input inputPhone2
+        }
+        section ("Delay Puerta Principal")
+            input inputPuertaPrincipal
+            input inputDelay
+    }
+}
 def pageOpcionesActivacion() {
-    log.debug("pageOpcionesActivacion()")
-    def resumenRemotos =    
-        "Control remoto por default define botones " +
-        "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
-    
+    log.debug("pageOpcionesActivacion)
     def inputModoAfuera = [
         name:       "modosAfuera",
         type:       "mode",
-        title:      "Activa Afuera en estos modos...",
+        title:      "Que modo?",
         multiple:   true,
         required:   false
     ]
@@ -188,135 +252,29 @@ def pageOpcionesActivacion() {
     ]
     def pageProperties = [
         name:       "pageOpcionesActivacion",
-        nextPage:   "pageStatus",
+        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Opciones de Activación Alarma") {
+        section("Opciones para Armar la Alarma") {
         }
-        section("Modos") {
+        section("Activa Armado Afuera automáticamente") {
             input inputModoAfuera
         }
         section("Controles Remotos") {
-           paragraph resumenRemotos
-           input inputRemotes
+            paragraph "(1) Armado Afuera, (2) Armado Casa, (3) Desarmado, y (4) Pánico"
+            input inputRemotes
         }
-        section("Integracion Tasker & Alexa") {
-           input inputMomentaryAfuera
-           input inputMomentaryCasa
-           input inputMomentaryDesactivar
-           input inputMomentaryPanico
+        section("Botones") {
+            paragraph "Para integración con Tasker & Amazon Echo"
+            input inputMomentaryAfuera
+            input inputMomentaryCasa
+            input inputMomentaryDesactivar
+            input inputMomentaryPanico
         }
     }
 }
-def pageOpcionesAlarma() {
-    log.debug("pageOpcionesAlarma()")
-    def resumen =
-        "Acciones a realizar despues de una activación." +
-        "Incluye sirenas, luces, fotos, y notificaciones. " +
-        "Notificaciones push (activacion & cambio estado) " +
-        "se envian de manera automatica."
-    def inputSirena = [
-        name:           "sirena",
-        type:           "capability.alarm",
-        title:          "Que sirenas?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputLuces = [
-        name:           "luces",
-        type:           "capability.switch",
-        title:          "Que luces?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputCamaras = [
-        name:           "camaras",
-        type:           "capability.imageCapture",
-        title:          "Que camaras?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputPhone1 = [
-        name:           "phone1",
-        type:           "phone",
-        title:          "Envia a este numero",
-        required:       false
-    ]
-    def inputPhone2 = [
-        name:           "phone2",
-        type:           "phone",
-        title:          "Envia a este numero",
-        required:       false
-    ]
-    def inputPushbulletDevice = [
-        name:           "pushbullet",
-        type:           "device.pushbullet",
-        title:          "Que cuenta pushbullet?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputAudioPlayers = [
-        name:           "audioPlayer",
-        type:           "capability.musicPlayer",
-        title:          "Que parlantes?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputSpeechTextArmedAway = [
-        name:           "speechTextArmedAway",
-        type:           "text",
-        title:          "Frase Armado Afuera",
-        required:       false
-    ]
-    def inputSpeechTextArmedStay = [
-        name:           "speechTextArmedStay",
-        type:           "text",
-        title:          "Frase Armado En Casa",
-        required:       false
-    ]
-    def inputSpeechTextDisarmed = [
-        name:           "speechTextDisarmed",
-        type:           "text",
-        title:          "Frase Desarmado",
-        required:       false
-    ]
-    def pageProperties = [
-        name:       "pageOpcionesAlarma",
-        nextPage:   "pageStatus",
-        uninstall:  false
-    ]
 
-    return dynamicPage(pageProperties) {
-        section("Opciones de Alarma") {
-            paragraph resumen
-        }
-        section("Sirenas") {
-            input inputSirena
-        }
-        section("Luces a prender") {
-            input inputLuces
-        }
-        section("Camaras") {
-            input inputCamaras
-        }
-        section("Mensajes de Texto") {
-            input inputPhone1
-            input inputPhone2
-        }
-        /** No me queda claro que sea usado en configuracion normal.
-        section("Pushbullet") {
-            input inputPushbulletDevice
-        }
-        section("Audio") {
-            input inputAudioPlayers
-            input inputSpeechTextArmedAway
-            input inputSpeechTextArmedStay
-            input inputSpeechTextDisarmed
-        }
-        */
-    }
-}
 
 def installed() {
     log.debug("installed()")
@@ -592,7 +550,7 @@ private def revisarContactos(){
     return true
 }
 private def statusAlarma(){
-    def statusAlarmaAhora
+    def statusAlarmaAhora == "No instalada"
     if(state.afuera) {
         statusAlarmaAhora = "Status - Armada Afuera"
     }
@@ -604,10 +562,6 @@ private def statusAlarma(){
     }
     if(state.panico) {
         statusAlarmaAhora = "Status - Panico"
-    }
-    def alarmaDesinstalada = !state.afuera||!state.casa||!state.desarmado||!state.panico
-    if (alarmaDesintalada==null) {
-        statusAlarmaAhora = "No instalada"
     }
     return statusAlarmaAhora
 }
