@@ -1,8 +1,9 @@
 /**
  *  Expert Alarm
  *
- *  Version 1.0.0 (06/Oct/2015)
- *  
+ *  Version 2.0.0 (06/Oct/2015)
+ *  Considera cambios a menus (nueva UI) e integración con rutinas
+ * 
  *  The latest version of this file can be found on GitHub at:
  *  --------------------------------------------------------------------------
  *
