@@ -30,9 +30,7 @@ definition(
     name:           "Alarma ExpertHome",
     namespace:      "Experthome",
     author:         "rodrigo@experthome.cl",
-    description:    "Sistema de alarma integrado a Experthome.cl. Permite monitoreo de casa, " +
-                    "y activación de sirenas, luces, luces, notificación sms y camaras foscam. " +
-                    "Incluye integración tasker para keypad android y Alexa (via switch virtuales) y control remoto.",
+    description:    "Sistema de alarma integrado a Experthome.cl",
     category:       "Safety & Security",
     iconUrl:        "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
     iconX2Url:      "http://experthome.cl/wp-content/uploads/2015/08/Security_14.png",
@@ -143,19 +141,10 @@ def pageOpcionesSensor() {
 }        
 def pageOpcionesActivacion() {
     log.debug("pageOpcionesActivacion()")
-    def resumen =
-        "Expert Alarm se puede instalar via:" +
-        "(i) android keypad (tasker), (ii) control remoto y," +
-        "(iii) cambio de modo (solo para activacion Afuera)."
     def resumenRemotos =    
         "Control remoto por default define botones " +
         "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
-    def resumenBoton =    
-        "Solo para ser usados por botones simulados " + 
-        "definidos en ST. Nombre botones deben ser: " +
-        "armadoAfuera, armadoCasa, desarmado, panico"
-    def resumenAudio =    
-        "Opciones de audio"        
+    
     def inputModoAfuera = [
         name:       "modosAfuera",
         type:       "mode",
@@ -170,32 +159,32 @@ def pageOpcionesActivacion() {
         multiple:   true,
         required:   false
     ]
-    def inputSwitchAfuera = [
-        name:       "switchAfuera",
-        type:       "capability.switch",
+    def inputMomentaryAfuera = [
+        name:       "momentaryAfuera",
+        type:       "capability.momentary",
         title:      "Afuera?",
-        multiple:   true,
+        multiple:   false,
         required:   false
     ]
-    def inputSwitchCasa = [
-        name:       "switchCasa",
-        type:       "capability.switch",
+    def inputMomentaryCasa = [
+        name:       "momentaryCasa",
+        type:       "capability.momentary",
         title:      "En Casa?",
-        multiple:   true,
+        multiple:   false,
         required:   false
     ]
-    def inputSwitchDesactivar = [
-        name:       "switchDesactivar",
-        type:       "capability.switch",
+    def inputMomentaryDesactivar = [
+        name:       "momentaryDesactivar",
+        type:       "capability.momentary",
         title:      "Desarmado?",
-        multiple:   true,
+        multiple:   false,
         required:   false
     ]
-    def inputSwitchPanico = [
-        name:       "switchPanico",
-        type:       "capability.switch",
+    def inputMomentaryPanico = [
+        name:       "momentaryPanico",
+        type:       "capability.momentary",
         title:      "Panico?",
-        multiple:   true,
+        multiple:   false,
         required:   false
     ]
     def pageProperties = [
@@ -204,8 +193,7 @@ def pageOpcionesActivacion() {
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Opciones de Armado") {
-            paragraph resumen
+        section("Opciones de Activación Alarma") {
         }
         section("Modos") {
             input inputModoAfuera
@@ -214,12 +202,11 @@ def pageOpcionesActivacion() {
            paragraph resumenRemotos
            input inputRemotes
         }
-        section("Switch Simulados para Keypad + Alexa") {
-           paragraph resumenBoton
-           input inputSwitchAfuera
-           input inputSwitchCasa
-           input inputSwitchDesactivar
-           input inputSwitchPanico
+        section("Integracion Tasker & Alexa") {
+           input inputMomentaryAfuera
+           input inputMomentaryCasa
+           input inputMomentaryDesactivar
+           input inputMomentaryPanico
         }
     }
 }
