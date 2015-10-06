@@ -56,10 +56,10 @@ def pageInicio() {
             paragraph alarmStatus
         }
         section("Opciones ExpertAlarm") {
-            href "pageArmedAway", title:"Seleccionar Sensores Armado Afuera", description:"Toca para abrir"
-            href "pageArmedStay", title:"Seleccionar Sensores Armado Casa", description:"Toca para abrir"
-            href "pageOpcionesAlarma", title:"Seleccionar Opciones de Alerta y Notificaciones  ", description:"Toca para abrir"
-            href "pageOpcionesActivacion", title:"Seleccionar Opciones Activación Alarma", description:"Toca para abrir"
+            href "pageArmedAway", title:"Sensores Armado Afuera"
+            href "pageArmedStay", title:"Sensores Armado Casa"
+            href "pageOpcionesAlarma", title:"Opciones de Alerta y Notificaciones"
+            href "pageOpcionesActivacion", title:"Opciones Activación Alarma"
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
@@ -69,8 +69,8 @@ def pageInicio() {
 def pageArmedAway() {
     log.debug("pageArmedAway")
     def resumenArmedAway = 
-        "Selección de sensores a usar para Armado Afuera " +
-        "Por default se consideran sensores de contacto y movimiento"
+        "Selección de sensores a usar para Armado Afuera. \n\n" +
+        "Por default se consideran sensores de contacto y movimiento."
     def inputContactAway = [
         name:       "contactoArmedAway",
         type:       "capability.contactSensor",
@@ -87,11 +87,11 @@ def pageArmedAway() {
     ]
     def pageProperties = [
         name:       "pageArmedAway",
-        nextPage:   "pageArmedStay",
+        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Agrega/remueve sensores...") {
+        section() {
             paragraph resumenArmedAway
             input inputContactAway
             input inputMotionAway
@@ -99,7 +99,7 @@ def pageArmedAway() {
     }
 }
 def pageArmedStay() {
-    log.debug("pageArmedStay")
+    log.debug("pageArmedStay()")
     def resumenArmedStay = 
         "Selección de sensores a usar para Armado Casa " +
         "Por default se consideran solo sensores de contacto"
@@ -123,7 +123,7 @@ def pageArmedStay() {
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Agrega/remueve sensores...") {
+        section() {
             paragraph resumenArmedStay
             input inputContactStay
             input inputMotionStay
@@ -256,9 +256,9 @@ def pageOpcionesActivacion() {
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Opciones para Armar la Alarma") {
+        section() {
         }
-        section("Activa Armado Afuera automáticamente") {
+        section("Activar Armado Afuera") {
             input inputModoAfuera
         }
         section("Controles Remotos") {
@@ -266,7 +266,6 @@ def pageOpcionesActivacion() {
             input inputRemotes
         }
         section("Botones") {
-            paragraph "Para integración con Tasker & Amazon Echo"
             input inputMomentaryAfuera
             input inputMomentaryCasa
             input inputMomentaryDesactivar
@@ -291,9 +290,9 @@ def updated() {
 private def initialize() {
     //Estado inicial de alarma
     state.afuera = false
-    state.casa = false
+    state.casa = true
     state.panico = false
-    state.desarmado = true
+    state.desarmado = false
     //Mapeo y revision de la alarma
     state.alarmaOn = false
     state.offSwitches = []
@@ -553,18 +552,18 @@ private def revisarContactos(){
 */
 
 private def statusAlarma(){
-    def statusAlarmaAhora = "No_instalada"
+    def statusAlarmaAhora = "No Instalada"
     if(state.afuera) {
-        statusAlarmaAhora = "Status - Armada Afuera"
+        statusAlarmaAhora = "Armada Afuera"
     }
     if(state.casa) {
-        statusAlarmaAhora = "Status - Armada En Casa"
+        statusAlarmaAhora = "Armada Casa"
     }
     if(state.desarmado) {
-        statusAlarmaAhora = "Status - Desarmada"
+        statusAlarmaAhora = "Desarmada"
     }
     if(state.panico) {
-        statusAlarmaAhora = "Status - Panico"
+        statusAlarmaAhora = "Panico"
     }
     return statusAlarmaAhora
 }
