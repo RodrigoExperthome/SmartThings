@@ -26,7 +26,7 @@
 import groovy.json.JsonSlurper
 
 definition(
-    name:           "ExpertAlarm",
+    name:           "Expert Alarm",
     namespace:      "ExpertHome",
     author:         "rodrigo@experthome.cl",
     description:    "Sistema de alarma integrado a experthome.cl",
@@ -36,11 +36,11 @@ definition(
 )
 
 preferences {
-    page name:"pageInicio"
-    page name:"pageArmedAway" 
-    page name:"pagedArmedStay" 
-    page name:"pageOpcionesAlarma"
-    page name:"pageOpcionesActivacion"
+    page (name:"pageInicio")
+    page (name:"pageArmedAway") 
+    page (name:"pageArmedStay") 
+    page (name:"pageOpcionesAlarma")
+    page (name:"pageOpcionesActivacion")
 }
 
 def pageInicio() {
@@ -55,11 +55,11 @@ def pageInicio() {
         section("Estado Alarma") {
             paragraph alarmStatus
         }
-        section("Opciones ExpertAlarm") {
-            href "pageArmedAway", title:"Armado Afuera", description:"Toca para abrir"
-            href "pageArmedStay", title:"Armado Casa", description:"Toca para abrir"
-            href "pageOpcionesAlarma", title:"Alerta y Notificaciones", description:"Toca para abrir"
-            href "pageOpcionesActivacion", title:"Activación Alarma", description:"Toca para abrir"
+        section("Opciones") {
+            href (name:"pageArmedAway", title:"Armado Afuera", description:"Toca para abrir")
+            href (name:"pageArmedStay", title:"Armado Casa", description:"Toca para abrir")
+            href (name:"pageOpcionesAlarma", title:"Alerta y Notificaciones", description:"Toca para abrir")
+            href (name:"pageOpcionesActivacion", title:"Activación Alarma", description:"Toca para abrir")
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
@@ -86,7 +86,6 @@ def pageArmedAway() {
     ]
     def pageProperties = [
         name:       "pageArmedAway",
-        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -117,7 +116,6 @@ def pageArmedStay() {
     ]
     def pageProperties = [
         name:       "pageArmedStay",
-        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -186,7 +184,6 @@ def pageOpcionesAlarma() {
     ]    
     def pageProperties = [
         name:       "pageOpcionesAlarma",
-        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -256,7 +253,6 @@ def pageOpcionesActivacion() {
     ]
     def pageProperties = [
         name:       "pageOpcionesActivacion",
-        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
