@@ -85,6 +85,7 @@ def pageArmedAway() {
     ]
     def pageProperties = [
         name:       "pageArmedAway",
+        nextPage:   "pageInicio",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
