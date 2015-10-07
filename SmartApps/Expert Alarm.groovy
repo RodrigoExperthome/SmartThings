@@ -67,7 +67,6 @@ def pageInicio() {
     }
 }
 def pageArmedAway() {
-    log.debug("pageArmedAway")
     def resumenArmedAway = 
         "Selección de sensores a usar para Armado Afuera."
     def inputContactAway = [
