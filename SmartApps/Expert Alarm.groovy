@@ -56,10 +56,10 @@ def pageInicio() {
             paragraph alarmStatus
         }
         section("Opciones") {
-            href (name:"pageArmedAway", title:"Armado Afuera", description:"Toca para abrir")
-            href (name:"pageArmedStay", title:"Armado Casa", description:"Toca para abrir")
-            href (name:"pageOpcionesAlarma", title:"Alerta y Notificaciones", description:"Toca para abrir")
-            href (name:"pageOpcionesActivacion", title:"Activación Alarma", description:"Toca para abrir")
+            href "pageArmedAway", title:"Armado Afuera", description:"Toca para abrir"
+            href "pageArmedStay", title:"Armado Casa", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Alerta y Notificaciones", description:"Toca para abrir"
+            href "pageOpcionesActivacion", title:"Activación Alarma", description:"Toca para abrir"
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
