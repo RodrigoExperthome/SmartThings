@@ -68,7 +68,7 @@ def pageInicio() {
 }
 def pageArmedAway() {
     def resumenArmedAway = 
-        "Selección de sensores a usar para Armado Afuera."
+        "Selección de sensores a usar en Armado Afuera."
     def inputContactAway = [
         name:       "contactoArmedAway",
         type:       "capability.contactSensor",
@@ -99,7 +99,7 @@ def pageArmedAway() {
 def pageArmedStay() {
     log.debug("pageArmedStay()")
     def resumenArmedStay = 
-        "Selección de sensores a usar para Armado Casa."
+        "Selección de sensores a usar en Armado Casa."
     def inputContactStay = [
         name:       "contactoArmedStay",
         type:       "capability.contactSensor",
@@ -131,14 +131,14 @@ def pageOpcionesAlarma() {
     def inputSirena = [
         name:           "sirena",
         type:           "capability.alarm",
-        title:          "Que sirenas?",
+        title:          "Sirenas?",
         multiple:       true,
         required:       false
     ]
     def inputLuces = [
         name:           "luces",
         type:           "capability.switch",
-        title:          "Que luces?",
+        title:          "Luces?",
         multiple:       true,
         required:       false
     ]
@@ -168,13 +168,13 @@ def pageOpcionesAlarma() {
         required:       false
     ]
     def inputPuertaPrincipal = [
-        name:       "contactoPuertaPrincipal",
+        name:       "puertaPrincipal",
         type:       "capability.contactSensor",
         title:      "Puerta Principal",
         multiple:   false,
         required:   false
     ]
-    input inputDelay = [
+    def inputDelay = [
         name:           "delayPuertaPrincipal", 
         type:           "enum", 
         title:          "Retraso en Activacion (seg)", 
@@ -187,24 +187,20 @@ def pageOpcionesAlarma() {
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Acciones a realizar despues de una activación") {
-        }
-        section("Sirenas") {
+        section("Alerta con...") {
             input inputSirena
-        }
-        section("Luces a prender") {
             input inputLuces
-        }
-        section("Camaras") {
             input inputCamaras
         }
         section("Mensajes") {
+            input inputPush
             input inputPhone1
             input inputPhone2
         }
-        section ("Delay Puerta Principal")
+        section ("Delay Puerta Principal") {
             input inputPuertaPrincipal
             input inputDelay
+        }
     }
 }
 def pageOpcionesActivacion() {
