@@ -36,11 +36,11 @@ definition(
 )
 
 preferences {
-    page (name:"pageInicio")
-    page (name:"pageArmedAway") 
-    page (name:"pageArmedStay") 
-    page (name:"pageOpcionesAlarma")
-    page (name:"pageOpcionesActivacion")
+    page name:"pageInicio"
+    page name:"pageArmedAway" 
+    page name:"pageArmedStay"
+    page name:"pageOpcionesAlarma"
+    page name:"pageOpcionesActivacion"
 }
 
 def pageInicio() {
