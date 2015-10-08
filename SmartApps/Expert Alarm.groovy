@@ -175,7 +175,7 @@ def pageOpcionesAlarma() {
         required:   false
     ]
     input inputDelay = [
-        name:           "inputDelay", 
+        name:           "delayPuertaPrincipal", 
         type:           "enum", 
         title:          "Retraso en Activacion (seg)", 
         metadata:       [values:["30","45","60"]], 
