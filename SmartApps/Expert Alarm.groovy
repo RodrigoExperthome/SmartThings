@@ -55,10 +55,10 @@ def pageStatus() {
             paragraph alarmStatus
         }
         section("Menu") {
-            href "pageSensores", title:"Selecciona sensores", description:"Toca para abrir"
-            href "pageOpcionesSensor", title:"Configura activacion", description:"Toca para abrir"
-            href "pageOpcionesActivacion", title:"Opciones de activacion", description:"Toca para abrir"
-            href "pageOpcionesAlarma", title:"Opciones de alarma", description:"Toca para abrir"
+            href "pageSensores", title:"Sensores", description:"Toca para abrir"
+            href "pageOpcionesSensor", title:"Armado Afuera/Casa", description:"Toca para abrir"
+            href "pageOpcionesActivacion", title:"Activacion Alarma", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Alarma & Notificaciones", description:"Toca para abrir"
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
@@ -97,9 +97,9 @@ def pageSensores() {
 def pageOpcionesSensor() {
     log.debug("pageOpcionesSensor()")
     def resumen = 
-        "Cada sensor se puede configurar como Afuera o Casa." +
+        "Cada sensor se puede configurar como Afuera o Casa." /n +
         "El armado Casa considera que puede haber movimiento dentro de la " +
-        "casa sin generar una activacion de alarma." +
+        "casa sin generar una activacion de alarma" /n +
         "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y Casa."
     def pageProperties = [
         name:       "pageOpcionesSensor",
@@ -140,13 +140,13 @@ def pageOpcionesSensor() {
 def pageOpcionesActivacion() {
     log.debug("pageOpcionesActivacion()")
     def resumenRemotos =    
-        "Control remoto por default define botones " +
+        "Botones " +
         "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
     
     def inputModoAfuera = [
         name:       "modosAfuera",
         type:       "mode",
-        title:      "Activa Afuera en estos modos...",
+        title:      "Armado Afuera en estos modos...",
         multiple:   true,
         required:   false
     ]
@@ -200,7 +200,7 @@ def pageOpcionesActivacion() {
            paragraph resumenRemotos
            input inputRemotes
         }
-        section("Integracion Tasker & Alexa") {
+        section("Botonera") {
            input inputMomentaryAfuera
            input inputMomentaryCasa
            input inputMomentaryDesactivar
@@ -303,17 +303,6 @@ def pageOpcionesAlarma() {
             input inputPhone1
             input inputPhone2
         }
-        /** No me queda claro que sea usado en configuracion normal.
-        section("Pushbullet") {
-            input inputPushbulletDevice
-        }
-        section("Audio") {
-            input inputAudioPlayers
-            input inputSpeechTextArmedAway
-            input inputSpeechTextArmedStay
-            input inputSpeechTextDisarmed
-        }
-        */
     }
 }
 
