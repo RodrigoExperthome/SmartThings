@@ -58,7 +58,7 @@ def pageStatus() {
             href "pageSensores", title:"Sensores", description:"Toca para abrir"
             href "pageOpcionesSensor", title:"Armado Afuera/Casa", description:"Toca para abrir"
             href "pageOpcionesActivacion", title:"Activacion Alarma", description:"Toca para abrir"
-            href "pageOpcionesAlarma", title:"Alarma & Notificaciones", description:"Toca para abrir"
+            href "pageOpcionesAlarma", title:"Alerta & Notificaciones", description:"Toca para abrir"
         }
         section([title:"Options", mobileOnly:true]) {
             label title:"Assign a name", required:false
@@ -84,7 +84,7 @@ def pageSensores() {
     ]
     def pageProperties = [
         name:       "pageSensores",
-        nextPage:   "pageStatus",
+        nextPage:   "pageOpcionesSensor",
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
@@ -97,10 +97,8 @@ def pageSensores() {
 def pageOpcionesSensor() {
     log.debug("pageOpcionesSensor()")
     def resumen = 
-        "Cada sensor se puede configurar como Afuera o Casa." /n +
-        "El armado Casa considera que puede haber movimiento dentro de la " +
-        "casa sin generar una activacion de alarma" /n +
-        "Cuando la alarma se arma en modo Afuera, se activan los sensores Afuera y Casa."
+        "Cada sensor se puede configurar como Afuera o Casa."
+        
     def pageProperties = [
         name:       "pageOpcionesSensor",
         nextPage:   "pageStatus",
@@ -131,17 +129,16 @@ def pageOpcionesSensor() {
                 }
             }
         }
-        section("Definir Puerta Principal...") {
-            input "inputPuerta","capability.contactSensor", title:"Puerta Principal", multiple:true, required: false
-            input "inputDelay", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
+        section("Puerta Principal...") {
+            input "puertaPrincipal","capability.contactSensor", title:"Puerta Principal", multiple:true, required: false
+            input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
         }
     }    
 }        
 def pageOpcionesActivacion() {
     log.debug("pageOpcionesActivacion()")
     def resumenRemotos =    
-        "Botones " +
-        "(1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
+        "Botones: (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
     
     def inputModoAfuera = [
         name:       "modosAfuera",
@@ -210,11 +207,6 @@ def pageOpcionesActivacion() {
 }
 def pageOpcionesAlarma() {
     log.debug("pageOpcionesAlarma()")
-    def resumen =
-        "Acciones a realizar despues de una activación." +
-        "Incluye sirenas, luces, fotos, y notificaciones. " +
-        "Notificaciones push (activacion & cambio estado) " +
-        "se envian de manera automatica."
     def inputSirena = [
         name:           "sirena",
         type:           "capability.alarm",
@@ -236,6 +228,12 @@ def pageOpcionesAlarma() {
         multiple:       true,
         required:       false
     ]
+    def inputPush = [
+        name:           "pushMessage",
+        type:           "bool",
+        title:          "Mensaje Push?",
+        defaultValue:   true
+    ]
     def inputPhone1 = [
         name:           "phone1",
         type:           "phone",
@@ -248,38 +246,7 @@ def pageOpcionesAlarma() {
         title:          "Envia a este numero",
         required:       false
     ]
-    def inputPushbulletDevice = [
-        name:           "pushbullet",
-        type:           "device.pushbullet",
-        title:          "Que cuenta pushbullet?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputAudioPlayers = [
-        name:           "audioPlayer",
-        type:           "capability.musicPlayer",
-        title:          "Que parlantes?",
-        multiple:       true,
-        required:       false
-    ]
-    def inputSpeechTextArmedAway = [
-        name:           "speechTextArmedAway",
-        type:           "text",
-        title:          "Frase Armado Afuera",
-        required:       false
-    ]
-    def inputSpeechTextArmedStay = [
-        name:           "speechTextArmedStay",
-        type:           "text",
-        title:          "Frase Armado En Casa",
-        required:       false
-    ]
-    def inputSpeechTextDisarmed = [
-        name:           "speechTextDisarmed",
-        type:           "text",
-        title:          "Frase Desarmado",
-        required:       false
-    ]
+    
     def pageProperties = [
         name:       "pageOpcionesAlarma",
         nextPage:   "pageStatus",
@@ -287,19 +254,13 @@ def pageOpcionesAlarma() {
     ]
 
     return dynamicPage(pageProperties) {
-        section("Opciones de Alarma") {
-            paragraph resumen
-        }
-        section("Sirenas") {
+        section("Alerta con...") {
             input inputSirena
-        }
-        section("Luces a prender") {
             input inputLuces
-        }
-        section("Camaras") {
             input inputCamaras
         }
-        section("Mensajes de Texto") {
+        section("Notificaciones...") {
+            input inputPush
             input inputPhone1
             input inputPhone2
         }
