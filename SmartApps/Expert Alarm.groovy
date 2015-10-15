@@ -25,7 +25,7 @@
 import groovy.json.JsonSlurper
 
 definition(
-    name:           "Alarma ExpertHome",
+    name:           "ExpertHome Alarm",
     namespace:      "Experthome",
     author:         "rodrigo@experthome.cl",
     description:    "Sistema de alarma integrado a Experthome.cl",
@@ -88,7 +88,7 @@ def pageSensores() {
         uninstall:  false
     ]
     return dynamicPage(pageProperties) {
-        section("Agrega/remueve sensores...") {
+        section("Agrega/remueve sensores a ser monitoreados") {
             input inputContact
             input inputMotion
         }
@@ -110,7 +110,7 @@ def pageOpcionesSensor() {
             paragraph resumen
         }
         if (settings.contacto) {
-            section("Sensores Contacto") {
+            section("Contacto") {
                 def devices = settings.contacto.sort {it.displayName}
                 devices.each() {
                     def devId = it.id
@@ -120,7 +120,7 @@ def pageOpcionesSensor() {
             }
         }
         if (settings.movimiento) {
-            section("Sensores Movimiento") {
+            section("Movimiento") {
                 def devices = settings.movimiento.sort {it.displayName}
                 devices.each() {
                     def devId = it.id
