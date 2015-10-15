@@ -1,7 +1,7 @@
 /**
  *  Expert Alarm
  *
- *  Version 1.0.0 (06/Oct/2015)
+ *  Version 1.5.0 (06/Oct/2015)
  *  
  *  The latest version of this file can be found on GitHub at:
  *  --------------------------------------------------------------------------
@@ -366,14 +366,15 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
-    if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-        log.debug("Se detecto puerta principal... Proceso delay")
-    }
-    
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
-        log.debug("Activando Alarma ${evt.displayName}")
-        activarAlarma(evt.displayName)    
+        if (contactoOk.idSensor == settings.puertaPrincipal.id) {
+            log.debug("Se detecto puerta principal... Proceso delay")
+            runIn(settings.delayPuerta, activarAlarma(evt.displayName))
+        } else {
+            log.debug("Activando Alarma ${evt.displayName}")
+            activarAlarma(evt.displayName)    
+        }
     }
 }
 //Cuando ocurre un evento de motion.presence, reviso 
