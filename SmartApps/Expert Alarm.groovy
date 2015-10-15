@@ -106,7 +106,7 @@ def pageOpcionesSensor() {
     ]
     def tipoSensor = ["Afuera", "Casa"]
     return dynamicPage(pageProperties) {
-        section("Sensores") {
+        section("Afuera/Casa") {
             paragraph resumen
         }
         if (settings.contacto) {
@@ -129,8 +129,8 @@ def pageOpcionesSensor() {
                 }
             }
         }
-        section("Puerta Principal...") {
-            input "puertaPrincipal","capability.contactSensor", title:"Puerta Principal", multiple:true, required: false
+        section("Puerta Principal") {
+            input "puertaPrincipal","capability.contactSensor", title:"Selecciona", multiple:true, required: false
             input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
         }
     }    
@@ -254,12 +254,12 @@ def pageOpcionesAlarma() {
     ]
 
     return dynamicPage(pageProperties) {
-        section("Alerta con...") {
+        section("Alerta") {
             input inputSirena
             input inputLuces
             input inputCamaras
         }
-        section("Notificaciones...") {
+        section("Notificaciones") {
             input inputPush
             input inputPhone1
             input inputPhone2
@@ -339,10 +339,8 @@ private def controlRemoto() {
         subscribe(settings.remoto, "button", onControlRemoto)
     }
 }
-//Nombre Switch Simulado debe ser mismo que funciones definidas
+//Nombre boton momentario debe ser mismo que funciones definidas
 //Tiene que estar en ingles para Alexa (Away, Home & Panic). No se permite desactivacion por Alexa.
-//Alexa podria funcionar con botones simulados como antes.
-//Problema es mantener actualizado a Tasker, especialmente en armados fallidos.
 private def switchSimulado() {
     log.debug("switchSimulado()")
     if (settings.switchAfuera) {
@@ -361,7 +359,6 @@ private def switchSimulado() {
 //Cuando ocurre un evento de contact.open, reviso 
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
-//** Falta implementar un delay (inputDelay) para la puerta principal (inputPuerta)
 def onContacto(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
@@ -369,9 +366,12 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
-    //Pensar en usar atomicState....
-    if((contactoOk.tipoArmado = "Afuera" && state.afuera) || (contactoOk.tipoArmado = "Casa" && state.afuera)
-    || (contactoOk.tipoArmado = "Afuera" && state.casa)) {
+    if (contactoOk.idSensor == settings.puertaPrincipal.id) {
+        log.debug("Se detecto puerta principal... Proceso delay")
+    }
+    
+    if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
+    || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma(evt.displayName)    
     }
@@ -379,7 +379,6 @@ def onContacto(evt) {
 //Cuando ocurre un evento de motion.presence, reviso 
 //que tipo de armado tiene el sensor, y lo comparo con el
 //estado de la alarma.
-//No existe delay en este caso, dado que siempre tiene que sonar la alarma
 def onMovimiento(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def movimientoOk = state.sensorMovimiento.find() {it.idSensor == evt.deviceId}
@@ -389,7 +388,7 @@ def onMovimiento(evt) {
     }
     //Pensar en usar atomicState....
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
-    || (movimientoOk.tipoArmado == "Afuera" && state.casa)) {
+    || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
         log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma(evt.displayName)    
     }
