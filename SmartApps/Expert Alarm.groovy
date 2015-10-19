@@ -344,16 +344,16 @@ private def controlRemoto() {
 private def switchSimulado() {
     log.debug("switchSimulado()")
     if (settings.switchAfuera) {
-        subscribe(settings.switchAfuera,"switch.on",onSwitchSimulado)
+        subscribe(settings.momentaryAfuera,"switch.push",onMomentary)
     }
     if (settings.switchCasa) {
-        subscribe(settings.switchCasa,"switch.on",onSwitchSimulado)
+        subscribe(settings.momentaryCasa,"switch.push",onMomentary)
     }
     if (settings.switchDesactivar) {
-        subscribe(settings.switchDesactivar,"switch.on",onSwitchSimulado)
+        subscribe(settings.momentaryDesactivar,"switch.push",onMomentary)
     }
     if (settings.switchPanico) {
-        subscribe(settings.switchPanico,"switch.on",onSwitchSimulado)
+        subscribe(settings.momentaryPanico,"switch.push",onMomentary)
     }
 }
 
@@ -413,19 +413,19 @@ def onControlRemoto(evt) {
 }
 //Nombre Switch Momentario debe ser mismo que funciones definidas
 // away, home, disarm & panic (en ingles para uso con Amazon Echo)
-def onSwitchSimulado(evt) {
+def onMomentary(evt) {
     "${evt.displayName}"()
 }
 
 private def away() {
     log.debug("Preparando Armado Afuera")
-    if (revisarContactos() && !atomicState.afuera && !atomicState.alarmaOn){
-        armadoAlarma(true)
+    if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn){
+        runIn(settings.delayPuerta, armadoAlarma(true))
     } 
 }
 private def home() {
     log.debug("Preparando Armado Casa")
-    if (revisarContactos() && !atomicState.casa && !atomicState.alarmaOn){
+    if (revisarContacto() && !atomicState.casa && !atomicState.alarmaOn){
         armadoAlarma(false)
     } 
 }
@@ -503,7 +503,7 @@ private def armadoAlarma(tipo){
     }
 }
 
-private def revisarSensores(){
+private def revisarContacto(){
     def algoAbierto = settings.contacto.findAll {it?.latestValue("contact").contains("open")}
     if (algoAbierto.size() > 0) {
         algoAbierto.each() {
