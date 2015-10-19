@@ -25,7 +25,7 @@
 import groovy.json.JsonSlurper
 
 definition(
-    name:           "ExpertHome Alarm",
+    name:           "Expert Alarm",
     namespace:      "Experthome",
     author:         "rodrigo@experthome.cl",
     description:    "Sistema de alarma integrado a Experthome.cl",
@@ -67,7 +67,7 @@ def pageStatus() {
 }
 
 def pageSensores() {
-    log.debug("pageSensores()")
+    //log.debug("pageSensores()")
     def inputContact = [
         name:       "contacto",
         type:       "capability.contactSensor",
@@ -95,7 +95,7 @@ def pageSensores() {
     }
 }
 def pageOpcionesSensor() {
-    log.debug("pageOpcionesSensor()")
+    //log.debug("pageOpcionesSensor()")
     def resumen = 
         "Cada sensor se puede configurar como Afuera o Casa."
         
@@ -136,7 +136,7 @@ def pageOpcionesSensor() {
     }    
 }        
 def pageOpcionesActivacion() {
-    log.debug("pageOpcionesActivacion()")
+    //log.debug("pageOpcionesActivacion()")
     def resumenRemotos =    
         "Botones: (1) Afuera, (2) Casa, (3) Desactivar, (4) Panico"
     
@@ -206,7 +206,7 @@ def pageOpcionesActivacion() {
     }
 }
 def pageOpcionesAlarma() {
-    log.debug("pageOpcionesAlarma()")
+    //log.debug("pageOpcionesAlarma()")
     def inputSirena = [
         name:           "sirena",
         type:           "capability.alarm",
@@ -311,7 +311,7 @@ private def sensores() {
         }
         subscribe(settings.contacto, "contact.open", onContacto)
         state.sensorContacto.each() {
-            log.debug ("Contacto ${it.idSensor} / ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Contacto ${it.idSensor} / ${it.tipoArmado}")    
         }
     }
     state.sensorMovimiento = []
@@ -328,7 +328,7 @@ private def sensores() {
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
         state.sensorMovimiento.each() {
-            log.debug ("Movimiento ${it.idSensor} / ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.idSensor} / ${it.tipoArmado}")    
         }
     }
 }
@@ -516,22 +516,18 @@ private def revisarSensores(){
 }
 
 private def statusAlarma(){
-    def statusAlarmaAhora
+    def statusAlarmaAhora = "No Instalada"
     if(state.afuera) {
-        statusAlarmaAhora = "Status - Armada Afuera"
+        statusAlarmaAhora = "Armada Afuera"
     }
     if(state.casa) {
-        statusAlarmaAhora = "Status - Armada En Casa"
+        statusAlarmaAhora = "Armada Casa"
     }
     if(state.desarmado) {
-        statusAlarmaAhora = "Status - Desarmada"
+        statusAlarmaAhora = "Desarmada"
     }
     if(state.panico) {
-        statusAlarmaAhora = "Status - Panico"
-    }
-    def alarmaDesinstalada = !state.afuera||!state.casa||!state.desarmado||!state.panico
-    if (alarmaDesintalada==null) {
-        statusAlarmaAhora = "No instalada"
+        statusAlarmaAhora = "Panico"
     }
     return statusAlarmaAhora
 }
