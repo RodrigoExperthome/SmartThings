@@ -289,7 +289,6 @@ private def initialize() {
     state.alarmaOn = false
     state.offSwitches = []
     //Mapeo sensores y suscripcion a eventos
-    log.debug("${statusAlarma()}")
     sensores()
     controlRemoto()
     switchSimulado()
@@ -312,7 +311,7 @@ private def sensores() {
         }
         subscribe(settings.contacto, "contact.open", onContacto)
         state.sensorContacto.each() {
-            log.debug ("${it.idSensor} / ${it.tipoArmado}")    
+            log.debug ("Contacto ${it.idSensor} / ${it.tipoArmado}")    
         }
     }
     state.sensorMovimiento = []
@@ -329,7 +328,7 @@ private def sensores() {
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
         state.sensorMovimiento.each() {
-            log.debug ("${it.idSensor} / ${it.tipoArmado}")    
+            log.debug ("Movimiento ${it.idSensor} / ${it.tipoArmado}")    
         }
     }
 }
@@ -356,9 +355,7 @@ private def switchSimulado() {
         subscribe(settings.switchPanico,"switch.on",onSwitchSimulado)
     }
 }
-//Cuando ocurre un evento de contact.open, reviso 
-//que tipo de armado tiene el sensor, y lo comparo con el
-//estado de la alarma.
+
 def onContacto(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
@@ -369,17 +366,14 @@ def onContacto(evt) {
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-            log.debug("Se detecto puerta principal... Proceso delay")
+            log.debug("Se detecto apertura de puerta principal... Proceso delay")
             runIn(settings.delayPuerta, activarAlarma(evt.displayName))
         } else {
-            log.debug("Activando Alarma ${evt.displayName}")
             activarAlarma(evt.displayName)    
         }
     }
 }
-//Cuando ocurre un evento de motion.presence, reviso 
-//que tipo de armado tiene el sensor, y lo comparo con el
-//estado de la alarma.
+
 def onMovimiento(evt) {
     log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
     def movimientoOk = state.sensorMovimiento.find() {it.idSensor == evt.deviceId}
@@ -387,15 +381,12 @@ def onMovimiento(evt) {
         log.warn ("No se encuentra el dispositivo de movimiento ${evt.deviceId}")
         return
     }
-    //Pensar en usar atomicState....
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
-        log.debug("Activando Alarma ${evt.displayName}")
         activarAlarma(evt.displayName)    
     }
 }
-//Cuando se aprieta un boton del control remoto, 
-//se ejecuta un cambio en el estado de la alarma.
+
 def onControlRemoto(evt) {
     log.debug("onControlRemoto")
     if (!evt.data) {
@@ -419,7 +410,8 @@ def onControlRemoto(evt) {
         
     }
 }
-//Nombre Switch Simulado debe ser mismo que funciones definidas
+//Nombre Switch Momentario debe ser mismo que funciones definidas
+// away, home, disarm & panic (en ingles para uso con Amazon Echo)
 def onSwitchSimulado(evt) {
     "${evt.displayName}"()
 }
@@ -428,14 +420,10 @@ private def away() {
     log.debug("Preparando Armado Afuera")
     if (revisarContactos() && !atomicState.afuera && !atomicState.alarmaOn){
         armadoAlarma(true)
-    } else {
-        
-        log.debug("Armado no exitoso")
-        
-    }
+    } 
 }
 private def home() {
-    log.debug("Preparando armadoCasa")
+    log.debug("Preparando Armado Casa")
     if (revisarContactos() && !atomicState.casa && !atomicState.alarmaOn){
         armadoAlarma(false)
     } 
@@ -447,28 +435,24 @@ private def disarm() {
     } 
 }
 private def panic() {
-    log.debug("panico")
-    log.debug("Alarma ya esta sonando!!!! ${state.alarmaOn}")
+    log.debug("Activano Panico")
     if (!atomicState.panico && !state.alarmaOn){
         activarPanico()
-         //mensaje push avisando que es boton de panico!!!
     } 
 }
-//Falta push y SMS. Pensar como integrar en Tasker.
+
 private def activarAlarma(nombreDispositivo) {
     log.debug("BEE DO BEE DO BEE DO")
     state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
-    log.debug("lucesOn: ${lucesOn}")
     if (lucesOn) {
         lucesOn*.on()
         state.offLuces = lucesOn.collect {it.id}
     }
-    //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
     def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
-    log.debug("${msg}")
+    mySendPush(msg)
 }
 
 private def activarPanico() {
@@ -477,28 +461,24 @@ private def activarPanico() {
     settings.sirena*.strobe()
     settings.camaras*.take()
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
-    log.debug("lucesOn: ${lucesOn}")
     if (lucesOn) {
         lucesOn*.on()
         state.offLuces = lucesOn.collect {it.id}
     }
-    //Implementar mensaje tipo push y SMS. Pensar como realizarlo en Tasker.
-    def msg = "Alarma en ${location.name}! - PANICO"
-    log.debug("${msg}")
+    def msg = "Boton de Panico en ${location.name}!"
+    mySendPush(msg)
 }
-
 private def desactivarAlarma() {
+    unschedule()
     log.debug("Desarmado exitoso")
     state.afuera = false
     state.casa = false
     state.desarmado = true
     state.panico = false
-    
     state.alarmaOn = false
     settings.sirena*.off()
     def lucesOff = state.offLuces
     if (lucesOff) {
-        log.debug("lucesOff: ${lucesOff}")
         settings.luces?.each() {
             if (lucesOff.contains(it.id)) {
                 it.off()
@@ -506,8 +486,6 @@ private def desactivarAlarma() {
         }
         state.offLuces = []
     }
-    log.debug("Afuera: ${state.afuera}/Casa: ${state.casa}/Desarmada: ${state.desarmado}/Panico: ${state.panico}")
-    //Implementar mensaje tipo push y SMS
 }
 //Armado Afuera = true y Armado Casa = false
 private def armadoAlarma(tipo){
@@ -516,30 +494,27 @@ private def armadoAlarma(tipo){
     if (tipo){
         state.afuera = true
         state.casa = false
+        mySendPush("Armado Afuera en ${location.name}")
     } else {
         state.afuera = false
         state.casa = true
+        mySendPush("Armado Casa en ${location.name}")
     }
-    //Implementar mensaje tipo push. Pensar como realizarlo en Tasker.
-    if (tipo){
-        log.debug("Alarma esta armada Afuera")
-    } else {
-        log.debug("Alarma esta armada Casa")
-    }
-    log.debug("Afuera: ${state.afuera}/Casa: ${state.casa}/Desarmada: ${state.desarmado}/Panico: ${state.panico}")
 }
-//Falta mandar un msg explicando razon de porque no se pudo armar la alarma
-private def revisarContactos(){
-    def puertaAbierta = settings.contacto.findAll {it?.latestValue("contact").contains("open")}
-    if (puertaAbierta.size() > 0) {
-        puertAbierta.each() {
-            log.debug("${it.displayName} esta abierto, no se puede continuar con proceso armado")    
+
+private def revisarSensores(){
+    def algoAbierto = settings.contacto.findAll {it?.latestValue("contact").contains("open")}
+    if (algoAbierto.size() > 0) {
+        algoAbierto.each() {
+            log.debug("${it.displayName} esta abierto, no se puede continuar con proceso armado")
+            mySendPush("${it.displayName} esta abierto, no se puede continuar con proceso armado")
+            //sendNotificationEvent("${it.displayName} esta abierto, no se puede continuar con proceso armado")
         }
         return false
-        //implementar mensaje tipo push. Pensar como realizarlo en Tasker.
     }
     return true
 }
+
 private def statusAlarma(){
     def statusAlarmaAhora
     if(state.afuera) {
@@ -560,3 +535,13 @@ private def statusAlarma(){
     }
     return statusAlarmaAhora
 }
+
+private def mySendPush(msg) {
+    // sendPush puede arrojar un error
+    try {
+        sendPush(msg)
+    } catch (e) {
+        log.error e
+    }
+}
+
