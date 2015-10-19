@@ -26,7 +26,7 @@ import groovy.json.JsonSlurper
 
 definition(
     name:           "Expert Alarm",
-    namespace:      "Experthome",
+    namespace:      "ExpertHome",
     author:         "rodrigo@experthome.cl",
     description:    "Sistema de alarma integrado a Experthome.cl",
     category:       "Safety & Security",
@@ -285,6 +285,7 @@ private def initialize() {
     state.casa = false
     state.panico = false
     state.desarmado = true
+    log.debug("${state.desarmado}")
     //Mapeo y revision de la alarma
     state.alarmaOn = false
     state.offSwitches = []
