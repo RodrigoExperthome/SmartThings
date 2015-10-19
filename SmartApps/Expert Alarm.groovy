@@ -343,16 +343,16 @@ private def controlRemoto() {
 //Tiene que estar en ingles para Alexa (Away, Home & Panic). No se permite desactivacion por Alexa.
 private def switchSimulado() {
     log.debug("switchSimulado()")
-    if (settings.switchAfuera) {
+    if (settings.momentaryAfuera) {
         subscribe(settings.momentaryAfuera,"switch.push",onMomentary)
     }
-    if (settings.switchCasa) {
+    if (settings.momentaryCasa) {
         subscribe(settings.momentaryCasa,"switch.push",onMomentary)
     }
-    if (settings.switchDesactivar) {
+    if (settings.momentaryDesactivar) {
         subscribe(settings.momentaryDesactivar,"switch.push",onMomentary)
     }
-    if (settings.switchPanico) {
+    if (settings.momentaryPanico) {
         subscribe(settings.momentaryPanico,"switch.push",onMomentary)
     }
 }
