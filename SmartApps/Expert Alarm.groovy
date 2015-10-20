@@ -542,3 +542,10 @@ private def mySendPush(msg) {
     }
 }
 
+// Funcion que permite leer estado de alarma para tasker
+private def accederEstado() {
+    
+    
+}    
+    
+}
