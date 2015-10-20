@@ -292,7 +292,7 @@ private def initialize() {
     //Mapeo sensores y suscripcion a eventos
     sensores()
     controlRemoto()
-    switchSimulado()
+    momentarySwitch()
 }
 
 //mapeo sensores y suscripcion
@@ -341,7 +341,7 @@ private def controlRemoto() {
 }
 //Nombre boton momentario debe ser mismo que funciones definidas
 //Tiene que estar en ingles para Alexa (Away, Home & Panic). No se permite desactivacion por Alexa.
-private def switchSimulado() {
+private def momentarySwitch() {
     log.debug("switchSimulado()")
     if (settings.momentaryAfuera) {
         subscribe(settings.momentaryAfuera,"switch.push",onMomentary)
