@@ -543,9 +543,10 @@ private def mySendPush(msg) {
 }
 
 // Funcion que permite leer estado de alarma para tasker
+//4 switch-1 dimmer
 private def accederEstado() {
     
     
 }    
     
-}
+
