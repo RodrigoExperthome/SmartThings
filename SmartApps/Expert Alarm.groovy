@@ -164,7 +164,7 @@ def pageOpcionesActivacion() {
     def inputMomentaryCasa = [
         name:       "momentaryCasa",
         type:       "capability.momentary",
-        title:      "En Casa?",
+        title:      "Casa?",
         multiple:   false,
         required:   false
     ]
@@ -178,6 +178,34 @@ def pageOpcionesActivacion() {
     def inputMomentaryPanico = [
         name:       "momentaryPanico",
         type:       "capability.momentary",
+        title:      "Panico?",
+        multiple:   false,
+        required:   false
+    ]
+    def inputSwitchAfuera = [
+        name:       "switchAfuera",
+        type:       "capability.switch",
+        title:      "Afuera?",
+        multiple:   false,
+        required:   false
+    ]
+    def inputSwitchCasa = [
+        name:       "switchCasa",
+        type:       "capability.switch",
+        title:      "Casa?",
+        multiple:   false,
+        required:   false
+    ]
+    def inputSwitchDesactivar = [
+        name:       "switchDesactivar",
+        type:       "capability.switch",
+        title:      "Desarmado?",
+        multiple:   false,
+        required:   false
+    ]
+    def inputSwitchPanico = [
+        name:       "switchPanico",
+        type:       "capability.switch",
         title:      "Panico?",
         multiple:   false,
         required:   false
@@ -203,6 +231,13 @@ def pageOpcionesActivacion() {
            input inputMomentaryDesactivar
            input inputMomentaryPanico
         }
+        section("Switch para Status"){
+           input inputSwitchAfuera
+           input inputSwitchCasa
+           input inputSwitchDesactivar
+           input inputSwitchPanico
+        }
+        
     }
 }
 def pageOpcionesAlarma() {
@@ -285,6 +320,7 @@ private def initialize() {
     state.casa = false
     state.panico = false
     state.desarmado = true
+    statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     log.debug("${state.desarmado}")
     //Mapeo y revision de la alarma
     state.alarmaOn = false
@@ -541,12 +577,37 @@ private def mySendPush(msg) {
         log.error e
     }
 }
-
-// Funcion que permite leer estado de alarma para tasker
-//4 switch-1 dimmer
-private def accederEstado() {
+//Via switch voy analizando estado de alarma.
+//Solo se usan para revisar estado
+//Proceso ineficiente
+private def statusAlarma(afueraBool, casaBool, panicoBool, desarmadoBool) {
+    if (afueraBool){
+        log.debug("actualizado switch a Afuera")
+        settings.switchAfueraStatus.on()
+        settings.switchCasaStatus.off()
+        settings.switchPanicoStatus.off()
+        settings.switchDesarmadoStatus.off()
+    }
+    if (casaBool){
+        log.debug("actualizado switch a Casa")
+        settings.switchAfueraStatus.off()
+        settings.switchCasaStatus.on()
+        settings.switchPanicoStatus.off()
+        settings.switchDesarmadoStatus.off()
+    }
+    if (panicoBool){
+        log.debug("actualizado switch a Panico")
+        settings.switchAfueraStatus.off()
+        settings.switchCasaStatus.off()
+        settings.switchPanicoStatus.on()
+        settings.switchDesarmadoStatus.off()
+    }
+    if (desarmadoBool){
+        log.debug("actualizado switch a Desarmado")
+        settings.switchAfueraStatus.off()
+        settings.switchCasaStatus.off()
+        settings.switchPanicoStatus.off()
+        settings.switchDesarmadoStatus.on()
+    }
     
-    
-}    
-    
-
+}
