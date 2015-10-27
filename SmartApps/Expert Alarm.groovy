@@ -324,6 +324,7 @@ private def initialize() {
     log.debug("${state.desarmado}")
     //Mapeo y revision de la alarma
     state.alarmaOn = false
+    state.alarmaDelay = false
     state.offSwitches = []
     //Mapeo sensores y suscripcion a eventos
     sensores()
@@ -403,7 +404,7 @@ def onContacto(evt) {
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-            log.debug("Se detecto apertura de puerta principal... Proceso delay")
+            log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso delay")
             runIn(settings.delayPuerta, activarAlarma(evt.displayName))
         } else {
             activarAlarma(evt.displayName)    
@@ -455,13 +456,15 @@ def onMomentary(evt) {
 
 private def away() {
     log.debug("Preparando Armado Afuera")
-    if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn){
+    if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn && !state.alarmaDelay){
+        //Siempre se arma con delay
         runIn(settings.delayPuerta, armadoAlarma(true))
+        state.alarmaDelay = true
     } 
 }
 private def home() {
     log.debug("Preparando Armado Casa")
-    if (revisarContacto() && !atomicState.casa && !atomicState.alarmaOn){
+    if (revisarContacto() && !atomicState.casa && !atomicState.alarmaOn && !state.alarmaDelay){
         armadoAlarma(false)
     } 
 }
@@ -479,7 +482,7 @@ private def panic() {
 }
 
 private def activarAlarma(nombreDispositivo) {
-    log.debug("BEE DO BEE DO BEE DO")
+    log.debug("Alarma Activada - ${nombreDispositivo}")
     state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
@@ -493,7 +496,7 @@ private def activarAlarma(nombreDispositivo) {
 }
 
 private def activarPanico() {
-    log.debug("PANICO!!!!")
+    log.debug("Panico activado")
     state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
@@ -513,6 +516,7 @@ private def desactivarAlarma() {
     state.desarmado = true
     state.panico = false
     state.alarmaOn = false
+    state.alarmaDelay = false
     settings.sirena*.off()
     def lucesOff = state.offLuces
     if (lucesOff) {
@@ -531,6 +535,7 @@ private def armadoAlarma(tipo){
     if (tipo){
         state.afuera = true
         state.casa = false
+        state.alarmaDelay = false
         mySendPush("Armado Afuera en ${location.name}")
     } else {
         state.afuera = false
@@ -590,24 +595,24 @@ private def statusAlarma(afueraBool, casaBool, panicoBool, desarmadoBool) {
     }
     if (casaBool){
         log.debug("actualizado switch a Casa")
-        settings.switchAfueraStatus.off()
-        settings.switchCasaStatus.on()
-        settings.switchPanicoStatus.off()
-        settings.switchDesarmadoStatus.off()
+        settings.switchAfuera.off()
+        settings.switchCasa.on()
+        settings.switchPanico.off()
+        settings.switchDesarmado.off()
     }
     if (panicoBool){
         log.debug("actualizado switch a Panico")
-        settings.switchAfueraStatus.off()
-        settings.switchCasaStatus.off()
-        settings.switchPanicoStatus.on()
-        settings.switchDesarmadoStatus.off()
+        settings.switchAfuera.off()
+        settings.switchCasa.off()
+        settings.switchPanico.on()
+        settings.switchDesarmado.off()
     }
     if (desarmadoBool){
         log.debug("actualizado switch a Desarmado")
-        settings.switchAfueraStatus.off()
-        settings.switchCasaStatus.off()
-        settings.switchPanicoStatus.off()
-        settings.switchDesarmadoStatus.on()
+        settings.switchAfuera.off()
+        settings.switchCasa.off()
+        settings.switchPanico.off()
+        settings.switchDesarmado.on()
     }
     
 }
