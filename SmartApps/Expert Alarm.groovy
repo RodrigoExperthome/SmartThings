@@ -344,7 +344,7 @@ private def sensores() {
         settings.contacto.each() {
             state.sensorContacto << [
                 idSensor:   it.id,
-                tipoArmado: settings["type_${it.id}"] ?: "Afuera",
+                tipoArmado: settings["type_${it.id}"] ?: "Casa",
             ]
         }
         subscribe(settings.contacto, "contact.open", onContacto)
@@ -361,7 +361,7 @@ private def sensores() {
         settings.movimiento.each() {
             state.sensorMovimiento << [
                 idSensor:   it.id,
-                tipoArmado: settings["type_${it.id}"] ?: "Casa",
+                tipoArmado: settings["type_${it.id}"] ?: "Afuera",
             ]
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
@@ -381,16 +381,16 @@ private def controlRemoto() {
 private def momentarySwitch() {
     log.debug("switchSimulado()")
     if (settings.momentaryAfuera) {
-        subscribe(settings.momentaryAfuera,"switch.push",onMomentary)
+        subscribe(settings.momentaryAfuera,"switch.on",onMomentary)
     }
     if (settings.momentaryCasa) {
-        subscribe(settings.momentaryCasa,"switch.push",onMomentary)
+        subscribe(settings.momentaryCasa,"switch.on",onMomentary)
     }
     if (settings.momentaryDesactivar) {
-        subscribe(settings.momentaryDesactivar,"switch.push",onMomentary)
+        subscribe(settings.momentaryDesactivar,"switch.on",onMomentary)
     }
     if (settings.momentaryPanico) {
-        subscribe(settings.momentaryPanico,"switch.push",onMomentary)
+        subscribe(settings.momentaryPanico,"switch.on",onMomentary)
     }
 }
 
@@ -401,10 +401,12 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
+    //Logica no esta funcionando
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso delay")
+            //no esta haciendo el delay
             runIn(settings.delayPuerta, activarAlarma(evt.displayName))
         } else {
             activarAlarma(evt.displayName)    
@@ -451,6 +453,7 @@ def onControlRemoto(evt) {
 //Nombre Switch Momentario debe ser mismo que funciones definidas
 // away, home, disarm & panic (en ingles para uso con Amazon Echo)
 def onMomentary(evt) {
+    log.debug ("${evt.displayName}")
     "${evt.displayName}"()
 }
 
@@ -475,7 +478,7 @@ private def disarm() {
     } 
 }
 private def panic() {
-    log.debug("Activano Panico")
+    log.debug("Activando Panico")
     if (!atomicState.panico && !state.alarmaOn){
         activarPanico()
     } 
@@ -497,7 +500,12 @@ private def activarAlarma(nombreDispositivo) {
 
 private def activarPanico() {
     log.debug("Panico activado")
+    state.afuera = false
+    state.casa = false
+    state.desarmado = false
+    state.panico = true
     state.alarmaOn = true
+    statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     settings.sirena*.strobe()
     settings.camaras*.take()
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
@@ -515,6 +523,7 @@ private def desactivarAlarma() {
     state.casa = false
     state.desarmado = true
     state.panico = false
+    statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     state.alarmaOn = false
     state.alarmaDelay = false
     settings.sirena*.off()
@@ -542,6 +551,7 @@ private def armadoAlarma(tipo){
         state.casa = true
         mySendPush("Armado Casa en ${location.name}")
     }
+    statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
 }
 
 private def revisarContacto(){
@@ -588,31 +598,31 @@ private def mySendPush(msg) {
 private def statusAlarma(afueraBool, casaBool, panicoBool, desarmadoBool) {
     if (afueraBool){
         log.debug("actualizado switch a Afuera")
-        settings.switchAfueraStatus.on()
-        settings.switchCasaStatus.off()
-        settings.switchPanicoStatus.off()
-        settings.switchDesarmadoStatus.off()
+        settings.switchAfuera.on()
+        settings.switchCasa.off()
+        settings.switchPanico.off()
+        settings.switchDesactivar.off()
     }
     if (casaBool){
         log.debug("actualizado switch a Casa")
         settings.switchAfuera.off()
         settings.switchCasa.on()
         settings.switchPanico.off()
-        settings.switchDesarmado.off()
+        settings.switchDesactivar.off()
     }
     if (panicoBool){
         log.debug("actualizado switch a Panico")
         settings.switchAfuera.off()
         settings.switchCasa.off()
         settings.switchPanico.on()
-        settings.switchDesarmado.off()
+        settings.switchDesactivar.off()
     }
     if (desarmadoBool){
         log.debug("actualizado switch a Desarmado")
         settings.switchAfuera.off()
         settings.switchCasa.off()
         settings.switchPanico.off()
-        settings.switchDesarmado.on()
+        settings.switchDesactivar.on()
     }
     
 }
