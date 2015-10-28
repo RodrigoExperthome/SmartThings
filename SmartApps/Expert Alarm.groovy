@@ -115,7 +115,7 @@ def pageOpcionesSensor() {
                 devices.each() {
                     def devId = it.id
                     def displayName = it.displayName
-                    input "type_${devId}", "enum", title:displayName, metadata:[values:tipoSensor], defaultValue:"Afuera"
+                    input "type_${devId}", "enum", title:displayName, metadata:[values:tipoSensor], defaultValue:"Casa"
                 }
             }
         }
@@ -125,7 +125,7 @@ def pageOpcionesSensor() {
                 devices.each() {
                     def devId = it.id
                     def displayName = it.displayName
-                        input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor],defaultValue:"Casa"
+                        input "type_${devId}", "enum", title:"${it.displayName}", metadata:[values:tipoSensor],defaultValue:"Afuera"
                 }
             }
         }
@@ -321,7 +321,6 @@ private def initialize() {
     state.panico = false
     state.desarmado = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
-    log.debug("${state.desarmado}")
     //Mapeo y revision de la alarma
     state.alarmaOn = false
     state.alarmaDelay = false
@@ -395,17 +394,16 @@ private def momentarySwitch() {
 }
 
 def onContacto(evt) {
-    log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
+    log.debug("Evento ${evt.displayName}")
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
     if (!contactoOk) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
-    //Logica no esta funcionando
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-            log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso delay")
+            log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
             //no esta haciendo el delay
             runIn(settings.delayPuerta, activarAlarma(evt.displayName))
         } else {
@@ -453,7 +451,6 @@ def onControlRemoto(evt) {
 //Nombre Switch Momentario debe ser mismo que funciones definidas
 // away, home, disarm & panic (en ingles para uso con Amazon Echo)
 def onMomentary(evt) {
-    log.debug ("${evt.displayName}")
     "${evt.displayName}"()
 }
 
@@ -472,7 +469,7 @@ private def home() {
     } 
 }
 private def disarm() {
-    log.debug("Preparando desarmado")
+    log.debug("Preparando Desarmado")
     if (!atomicState.desarmado){
         desactivarAlarma()
     } 
@@ -485,7 +482,6 @@ private def panic() {
 }
 
 private def activarAlarma(nombreDispositivo) {
-    log.debug("Alarma Activada - ${nombreDispositivo}")
     state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
@@ -495,11 +491,11 @@ private def activarAlarma(nombreDispositivo) {
         state.offLuces = lucesOn.collect {it.id}
     }
     def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
+    log.debug(msg)
     mySendPush(msg)
 }
 
 private def activarPanico() {
-    log.debug("Panico activado")
     state.afuera = false
     state.casa = false
     state.desarmado = false
@@ -515,10 +511,10 @@ private def activarPanico() {
     }
     def msg = "Boton de Panico en ${location.name}!"
     mySendPush(msg)
+    log.debug(msg)
 }
 private def desactivarAlarma() {
     unschedule()
-    log.debug("Desarmado exitoso")
     state.afuera = false
     state.casa = false
     state.desarmado = true
@@ -536,6 +532,9 @@ private def desactivarAlarma() {
         }
         state.offLuces = []
     }
+    def msg = "Desactivando Alarma en ${location.name}!"
+    mySendPush(msg)
+    log.debug(msg)
 }
 //Armado Afuera = true y Armado Casa = false
 private def armadoAlarma(tipo){
@@ -546,10 +545,12 @@ private def armadoAlarma(tipo){
         state.casa = false
         state.alarmaDelay = false
         mySendPush("Armado Afuera en ${location.name}")
+        log.debug("Armado Afuera en ${location.name}")
     } else {
         state.afuera = false
         state.casa = true
         mySendPush("Armado Casa en ${location.name}")
+        log.debug("Armado Casa en ${location.name}")
     }
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
 }
@@ -597,32 +598,27 @@ private def mySendPush(msg) {
 //Proceso ineficiente
 private def statusAlarma(afueraBool, casaBool, panicoBool, desarmadoBool) {
     if (afueraBool){
-        log.debug("actualizado switch a Afuera")
         settings.switchAfuera.on()
         settings.switchCasa.off()
         settings.switchPanico.off()
         settings.switchDesactivar.off()
     }
     if (casaBool){
-        log.debug("actualizado switch a Casa")
         settings.switchAfuera.off()
         settings.switchCasa.on()
         settings.switchPanico.off()
         settings.switchDesactivar.off()
     }
     if (panicoBool){
-        log.debug("actualizado switch a Panico")
         settings.switchAfuera.off()
         settings.switchCasa.off()
         settings.switchPanico.on()
         settings.switchDesactivar.off()
     }
     if (desarmadoBool){
-        log.debug("actualizado switch a Desarmado")
         settings.switchAfuera.off()
         settings.switchCasa.off()
         settings.switchPanico.off()
         settings.switchDesactivar.on()
     }
-    
 }
