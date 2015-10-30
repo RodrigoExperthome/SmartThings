@@ -96,6 +96,8 @@ def updated() {
 
 def initialize() {
 	state.lucesOff = []
+	state.killedProcess = false
+	state.timerStart = false
 	if(movimiento) {
 		subscribe(settings.movimiento, "motion", onEvent)
 	}
@@ -110,6 +112,8 @@ def initialize() {
 def onEvent(evt) {
 	if (!modo || modo.contains(location.mode))  {
     	if (getInputOk(movimiento, contacto, presencia)) {
+    		//Cuando ocurre un evento, y aparece otro antes de que se desactive...
+    		//state.offluces queda vacio, dado que primer evento las prendio.
         	log.debug("Movimiento, Contacto o Presencia detectada")           
             if (state.timerStart){
             	log.debug("Cancelando proceso de delay, dado que aparecio nuevo evento")
@@ -117,10 +121,9 @@ def onEvent(evt) {
             	state.timerStart = false
                 state.killedProcess = true
         	} else {
-            	if (state.killedProcess) {
-            	// No hace nada. Implementar en negativo???	  
-            	} else {
-                def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
+        		//Me estoy quedando atrapado por el loop killedProcess
+            	if (!state.killedProcess) {
+       	            def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
                     log.debug("Las luces apagadas al iniciar la app son : '${offLuces}'")             	
             	    state.lucesOff = offLuces.collect{it.id}
                     offLuces*.on()
