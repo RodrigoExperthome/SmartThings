@@ -402,12 +402,13 @@ def onContacto(evt) {
     }
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
+        state.evtDisplayName = evt.displayName
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
             //no esta haciendo el delay
-            runIn(settings.delayPuerta, activarAlarma(evt.displayName))
+            runIn(settings.delayPuerta, activarAlarma)
         } else {
-            activarAlarma(evt.displayName)    
+            activarAlarma()    
         }
     }
 }
@@ -421,7 +422,8 @@ def onMovimiento(evt) {
     }
     if((movimientoOk.tipoArmado == "Afuera" && state.afuera) || (movimientoOk.tipoArmado == "Casa" && state.afuera)
     || (movimientoOk.tipoArmado == "Casa" && state.casa)) {
-        activarAlarma(evt.displayName)    
+        state.evtDisplayName = evt.displayName
+        activarAlarma()    
     }
 }
 
@@ -458,14 +460,14 @@ private def away() {
     log.debug("Preparando Armado Afuera")
     if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn && !state.alarmaDelay){
         //Siempre se arma con delay
-        runIn(settings.delayPuerta, armadoAlarma(true))
+        runIn(settings.delayPuerta, armadoAlarmaAfuera)
         state.alarmaDelay = true
     } 
 }
 private def home() {
     log.debug("Preparando Armado Casa")
     if (revisarContacto() && !atomicState.casa && !atomicState.alarmaOn && !state.alarmaDelay){
-        armadoAlarma(false)
+        armadoAlarmaCasa()
     } 
 }
 private def disarm() {
@@ -481,7 +483,7 @@ private def panic() {
     } 
 }
 
-private def activarAlarma(nombreDispositivo) {
+private def activarAlarma() {
     state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
@@ -490,7 +492,7 @@ private def activarAlarma(nombreDispositivo) {
         lucesOn*.on()
         state.offLuces = lucesOn.collect {it.id}
     }
-    def msg = "Alarma en ${location.name}! - ${nombreDispositivo}"
+    def msg = "Alarma en ${location.name}! - ${state.evtDisplayName}"
     log.debug(msg)
     mySendPush(msg)
 }
@@ -536,22 +538,23 @@ private def desactivarAlarma() {
     mySendPush(msg)
     log.debug(msg)
 }
-//Armado Afuera = true y Armado Casa = false
-private def armadoAlarma(tipo){
+private def armadoAlarmaAfuera(){
     state.desarmado = false
     state.panico = false
-    if (tipo){
-        state.afuera = true
-        state.casa = false
-        state.alarmaDelay = false
-        mySendPush("Armado Afuera en ${location.name}")
-        log.debug("Armado Afuera en ${location.name}")
-    } else {
-        state.afuera = false
-        state.casa = true
-        mySendPush("Armado Casa en ${location.name}")
-        log.debug("Armado Casa en ${location.name}")
-    }
+    state.afuera = true
+    state.casa = false
+    state.alarmaDelay = false
+    mySendPush("Armado Afuera en ${location.name}")
+    log.debug("Armado Afuera en ${location.name}")
+    statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
+}
+private def armadoAlarmaCasa(){
+    state.desarmado = false
+    state.panico = false
+    state.afuera = false
+    state.casa = true
+    mySendPush("Armado Casa en ${location.name}")
+    log.debug("Armado Casa en ${location.name}")
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
 }
 
