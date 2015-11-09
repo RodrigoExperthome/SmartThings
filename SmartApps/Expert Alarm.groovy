@@ -131,7 +131,7 @@ def pageOpcionesSensor() {
         }
         section("Puerta Principal") {
             input "puertaPrincipal","capability.contactSensor", title:"Selecciona", multiple:true, required: false
-            input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["30","45","60"]], defaultValue:"30", required: true
+            input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["60","120","180"]], defaultValue:"120", required: true
         }
     }    
 }        
@@ -405,7 +405,7 @@ def onContacto(evt) {
         state.evtDisplayName = evt.displayName
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
-            myRunIn(settings.delayPuerta, activarAlarma)
+            runIn(settings.delayPuerta, "activarAlarma")
         } else {
             activarAlarma()    
         }
@@ -459,7 +459,7 @@ private def away() {
     log.debug("Preparando Armado Afuera")
     if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn && !state.alarmaDelay){
         //Siempre se arma con delay
-        myRunIn(settings.delayPuerta, armadoAlarmaAfuera)
+        runIn(settings.delayPuerta, "armadoAlarmaAfuera")
         state.alarmaDelay = true
     } 
 }
