@@ -348,7 +348,7 @@ private def sensores() {
         }
         subscribe(settings.contacto, "contact.open", onContacto)
         state.sensorContacto.each() {
-            log.debug ("Instalacion Exitosa Sensor Contacto ${it.idSensor} / ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Contacto ${it.displayName} - ${it.tipoArmado}")    
         }
     }
     state.sensorMovimiento = []
@@ -365,7 +365,7 @@ private def sensores() {
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
         state.sensorMovimiento.each() {
-            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.idSensor} / ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.displayName} - ${it.tipoArmado}")    
         }
     }
 }
@@ -405,7 +405,6 @@ def onContacto(evt) {
         state.evtDisplayName = evt.displayName
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
-            //no esta haciendo el delay
             runIn(settings.delayPuerta, activarAlarma)
         } else {
             activarAlarma()    
@@ -502,8 +501,9 @@ private def activarPanico() {
     state.casa = false
     state.desarmado = false
     state.panico = true
-    state.alarmaOn = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
+    
+    state.alarmaOn = true
     settings.sirena*.strobe()
     settings.camaras*.take()
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
