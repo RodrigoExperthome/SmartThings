@@ -348,7 +348,7 @@ private def sensores() {
         }
         subscribe(settings.contacto, "contact.open", onContacto)
         state.sensorContacto.each() {
-            log.debug ("Instalacion Exitosa Sensor Contacto ${it.displayName} - ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Contacto ${it.id} - ${it.tipoArmado}")    
         }
     }
     state.sensorMovimiento = []
@@ -365,7 +365,7 @@ private def sensores() {
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
         state.sensorMovimiento.each() {
-            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.displayName} - ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.id} - ${it.tipoArmado}")    
         }
     }
 }
@@ -405,7 +405,7 @@ def onContacto(evt) {
         state.evtDisplayName = evt.displayName
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
-            runIn(settings.delayPuerta, activarAlarma)
+            myRunIn(settings.delayPuerta, activarAlarma)
         } else {
             activarAlarma()    
         }
@@ -459,7 +459,7 @@ private def away() {
     log.debug("Preparando Armado Afuera")
     if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn && !state.alarmaDelay){
         //Siempre se arma con delay
-        runIn(settings.delayPuerta, armadoAlarmaAfuera)
+        myRunIn(settings.delayPuerta, armadoAlarmaAfuera)
         state.alarmaDelay = true
     } 
 }
@@ -534,7 +534,7 @@ private def desactivarAlarma() {
         }
         state.offLuces = []
     }
-    def msg = "Desactivando Alarma en ${location.name}!"
+    def msg = "Alarma en ${location.name} desactivada"
     mySendPush(msg)
     log.debug(msg)
 }
@@ -623,5 +623,12 @@ private def statusAlarma(afueraBool, casaBool, panicoBool, desarmadoBool) {
         settings.switchCasa.off()
         settings.switchPanico.off()
         settings.switchDesactivar.on()
+    }
+}
+//RunIn method 
+private def myRunIn(delay_s, func) {
+    if (delay_s > 0) {
+        def date = new Date(now() + (delay_s * 1000))
+        runOnce(date, func)
     }
 }
