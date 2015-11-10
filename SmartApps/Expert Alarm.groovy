@@ -116,8 +116,8 @@ def pageOpcionesSensor() {
         type:       "enum",
         title:      "Retraso en Activacion (seg)",
         metadata:   [values:["60","120","180"]],
-        defaultValue:"60"
-        multiple:   true,
+        defaultValue:"60",
+        multiple:   false,
         required:   true  
     ]
 
@@ -342,6 +342,7 @@ private def initialize() {
     state.delay = settings.delayPuerta?.toInteger()
     state.puertaPrincipalId = settings.puertaPrincipal.id
     log.debug("${settings.puertaPrincipal.id} / ${state.puertaPrincipalId}")
+    log.debug("${settings.contacto}")
     state.alarmaOn = false
     state.alarmaDelay = false
     state.offSwitches = []
