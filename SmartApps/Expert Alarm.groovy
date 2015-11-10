@@ -104,6 +104,23 @@ def pageOpcionesSensor() {
         nextPage:   "pageStatus",
         uninstall:  false
     ]
+    def inputPuertaPrincipal = [
+        name:       "puertaPrincipal",
+        type:       "capability.contactSensor",
+        title:      "Selecciona",
+        multiple:   true,
+        required:   true  
+    ]
+    def inputDelayPuerta = [
+        name:       "delayPuerta",
+        type:       "enum",
+        title:      "Retraso en Activacion (seg)",
+        metadata:   [values:["60","120","180"]],
+        defaultValue:"60"
+        multiple:   true,
+        required:   true  
+    ]
+
     def tipoSensor = ["Afuera", "Casa"]
     return dynamicPage(pageProperties) {
         section("Afuera/Casa") {
@@ -130,8 +147,8 @@ def pageOpcionesSensor() {
             }
         }
         section("Puerta Principal") {
-            input "puertaPrincipal","capability.contactSensor", title:"Selecciona", multiple:true, required: false
-            input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["60","120","180"]], defaultValue:"60", required: true
+            input inputPuertaPrincipal
+            input inputDelayPuerta
         }
     }    
 }        
@@ -323,6 +340,8 @@ private def initialize() {
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     //Mapeo y revision de la alarma
     state.delay = settings.delayPuerta?.toInteger()
+    state.puertaPrincipalId = settings.puertaPrincipal.id
+    log.debug("${settings.puertaPrincipal.id} / ${state.puertaPrincipalId}")
     state.alarmaOn = false
     state.alarmaDelay = false
     state.offSwitches = []
@@ -338,7 +357,7 @@ private def sensores() {
     state.sensorContacto = []
     state.sensorContacto << [
         idSensor:   null,
-        tipoArmado: "Afuera",
+        tipoArmado: "Casa",
     ]
     if (settings.contacto) {
         settings.contacto.each() {
@@ -355,7 +374,7 @@ private def sensores() {
     state.sensorMovimiento = []
     state.sensorMovimiento << [
         idSensor:   null,
-        tipoArmado: "Casa",
+        tipoArmado: "Afuera",
     ]
     if (settings.movimiento) {
         settings.movimiento.each() {
@@ -401,11 +420,13 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
+    //Solo aplicar delay para armado afuera.
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         state.evtDisplayName = evt.displayName
+        log.debug("${contactoOk.idSensor} / ${settings.puertaPrincipal.id}")
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-            log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
+            log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${state.delay}")
             runIn(state.delay, "activarAlarma")
         } else {
             activarAlarma()    
@@ -414,7 +435,7 @@ def onContacto(evt) {
 }
 
 def onMovimiento(evt) {
-    log.debug("Evento ${evt.displayName} / ${evt.deviceId}")
+    log.debug("Evento ${evt.displayName}")
     def movimientoOk = state.sensorMovimiento.find() {it.idSensor == evt.deviceId}
     if (!movimientoOk) {
         log.warn ("No se encuentra el dispositivo de movimiento ${evt.deviceId}")
