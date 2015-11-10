@@ -131,7 +131,7 @@ def pageOpcionesSensor() {
         }
         section("Puerta Principal") {
             input "puertaPrincipal","capability.contactSensor", title:"Selecciona", multiple:true, required: false
-            input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["60","120","180"]], defaultValue:"120", required: true
+            input "delayPuerta", "enum", title:"Retraso en Activacion (seg)", metadata:[values:["60","120","180"]], defaultValue:"60", required: true
         }
     }    
 }        
@@ -322,6 +322,7 @@ private def initialize() {
     state.desarmado = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     //Mapeo y revision de la alarma
+    state.delay = settings.delayPuerta?.toInteger()
     state.alarmaOn = false
     state.alarmaDelay = false
     state.offSwitches = []
@@ -348,7 +349,7 @@ private def sensores() {
         }
         subscribe(settings.contacto, "contact.open", onContacto)
         state.sensorContacto.each() {
-            log.debug ("Instalacion Exitosa Sensor Contacto ${it.id} - ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Contacto ${it.idSensor} - ${it.tipoArmado}")    
         }
     }
     state.sensorMovimiento = []
@@ -365,7 +366,7 @@ private def sensores() {
         }
         subscribe(settings.movimiento, "motion.active", onMovimiento)
         state.sensorMovimiento.each() {
-            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.id} - ${it.tipoArmado}")    
+            log.debug ("Instalacion Exitosa Sensor Movimiento ${it.idSensor} - ${it.tipoArmado}")    
         }
     }
 }
@@ -405,7 +406,7 @@ def onContacto(evt) {
         state.evtDisplayName = evt.displayName
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${settings.dealyPuerta}")
-            runIn(settings.delayPuerta, "activarAlarma")
+            runIn(state.delay, "activarAlarma")
         } else {
             activarAlarma()    
         }
@@ -454,12 +455,12 @@ def onControlRemoto(evt) {
 def onMomentary(evt) {
     "${evt.displayName}"()
 }
-
+//Falta definir mensajes para no activacion, del tipo revisarContactos()
 private def away() {
     log.debug("Preparando Armado Afuera")
     if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn && !state.alarmaDelay){
         //Siempre se arma con delay
-        runIn(settings.delayPuerta, "armadoAlarmaAfuera")
+        runIn(state.delay, "armadoAlarmaAfuera")
         state.alarmaDelay = true
     } 
 }
@@ -562,8 +563,8 @@ private def revisarContacto(){
     def algoAbierto = settings.contacto.findAll {it?.latestValue("contact").contains("open")}
     if (algoAbierto.size() > 0) {
         algoAbierto.each() {
-            log.debug("${it.displayName} esta abierto, no se puede continuar con proceso armado")
-            mySendPush("${it.displayName} esta abierto, no se puede continuar con proceso armado")
+            log.debug("${it.displayName} esta abierta, no se puede continuar con proceso armado")
+            mySendPush("${it.displayName} esta abierta, no se puede continuar con proceso armado")
             //sendNotificationEvent("${it.displayName} esta abierto, no se puede continuar con proceso armado")
         }
         return false
