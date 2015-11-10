@@ -107,7 +107,7 @@ def pageOpcionesSensor() {
     def inputPuertaPrincipal = [
         name:       "puertaPrincipal",
         type:       "capability.contactSensor",
-        title:      "Selecciona",
+        title:      "Selecciona...",
         multiple:   true,
         required:   true  
     ]
@@ -311,6 +311,8 @@ def pageOpcionesAlarma() {
             input inputLuces
             input inputCamaras
         }
+        //Falta implementar Mensaje Telefonico. 
+        //Solo Panico y Alarma?
         section("Notificaciones") {
             input inputPush
             input inputPhone1
@@ -338,11 +340,11 @@ private def initialize() {
     state.panico = false
     state.desarmado = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
-    //Mapeo y revision de la alarma
+    //Seteo Delay
     state.delay = settings.delayPuerta?.toInteger()
-    state.puertaPrincipalId = settings.puertaPrincipal.id
-    log.debug("${settings.puertaPrincipal.id} / ${state.puertaPrincipalId}")
-    log.debug("${settings.contacto}")
+    log.debug("${settings.puertaPrincipal.id} / ${settings.contacto}")
+    log.debug("${settings.movimiento}")
+    //Seteo de otras variables de la alarma
     state.alarmaOn = false
     state.alarmaDelay = false
     state.offSwitches = []
@@ -425,7 +427,7 @@ def onContacto(evt) {
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         state.evtDisplayName = evt.displayName
-        log.debug("${contactoOk.idSensor} / ${settings.puertaPrincipal.id}")
+        log.debug("${contactoOk.idSensor} / ${state.puertaPrincipalId.idSensor}")
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${state.delay}")
             runIn(state.delay, "activarAlarma")
