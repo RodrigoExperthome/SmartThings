@@ -98,23 +98,26 @@ def initialize() {
 	state.lucesOff = []
 	state.killedProcess = false
 	state.timerStart = false
+	state.lights = settings.luces
+	log.debug("${settings.luces} / ${state.lights}")
+	log.debug("${settings.movimiento}")
+	log.debug("${settings.contacto}")
 	if(movimiento) {
-		subscribe(settings.movimiento, "motion", onEvent)
+		subscribe(settings.movimiento, "motion", onEvento)
 	}
 	if(contacto) {
-		subscribe(settings.contacto, "contact", onEvent)
+		subscribe(settings.contacto, "contact", onEvento)
 	}
 	if(presencia) {
-		subscribe(settings.presencia, "presence.present", onEvent)
+		subscribe(settings.presencia, "presence.present", onEvento)
 	}
 }
-
-def onEvent(evt) {
+//Cuando ocurre un evento, y aparece otro antes de que se desactive...
+//state.offluces queda vacio, dado que primer evento las prendio.
+def onEvento(evt) {
 	if (!modo || modo.contains(location.mode))  {
     	if (getInputOk(movimiento, contacto, presencia)) {
-    		//Cuando ocurre un evento, y aparece otro antes de que se desactive...
-    		//state.offluces queda vacio, dado que primer evento las prendio.
-        	log.debug("Movimiento, Contacto o Presencia detectada")           
+    		log.debug("Movimiento, Contacto o Presencia detectada")           
             if (state.timerStart){
             	log.debug("Cancelando proceso de delay, dado que aparecio nuevo evento")
             	unschedule(apagarLuz)
