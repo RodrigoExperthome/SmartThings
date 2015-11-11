@@ -104,11 +104,12 @@ def pageOpcionesSensor() {
         nextPage:   "pageStatus",
         uninstall:  false
     ]
+    //Multiples requieren reprogramacion por el tema de los brackets.
     def inputPuertaPrincipal = [
         name:       "puertaPrincipal",
         type:       "capability.contactSensor",
         title:      "Selecciona...",
-        multiple:   true,
+        multiple:   false,
         required:   true  
     ]
     def inputDelayPuerta = [
@@ -421,17 +422,24 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
+    //Alarma Armada Afuera implica que sensores armados afuera y casa tienen que activar alarma
+    //Alarma Armada Casa implica que solo sensores armados casa tienen que activar alarma
+    
     //Solo aplicar delay para cuando alarma se encuentra en modo Armado Afuera.
-    if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
-    || (contactoOk.tipoArmado == "Casa" && state.casa)) {
+    //Idea es que cuando uno llegue, pueda desactivar la alarma en keypad tasker.
+    if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)) {
         state.evtDisplayName = evt.displayName
         log.debug("${contactoOk.idSensor} / ${settings.puertaPrincipal.id}")
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-            log.debug("Se detecto apertura de Puerta Principal ${settings.puertaPrincipal.displayName}... Armado Afuera en ${state.delay} seg.")
+            log.debug("Se detectó apertura de Puerta Principal ${settings.puertaPrincipal.displayName}... Armado Afuera en ${state.delay} seg.")
             runIn(state.delay, "activarAlarma")
         } else {
             activarAlarma()    
         }
+    }
+    if (contactoOk.tipoArmado == "Casa" && state.casa) {
+        state.evtDisplayName = evt.displayName
+        activarAlarma()  
     }
 }
 
@@ -498,6 +506,7 @@ private def disarm() {
         desactivarAlarma()
     } 
 }
+
 private def panic() {
     log.debug("Activando Panico")
     if (!atomicState.panico){
@@ -535,7 +544,16 @@ private def activarPanico() {
         state.offLuces = lucesOn.collect {it.id}
     }
     def msg = "Boton de Panico en ${location.name}!"
+    
     mySendPush(msg)
+    //Solo SMS cuando suena la alarma/panico/desarmado.
+    if (!settings.phone1) {
+        sendSMS(settings.phone1, msg)
+    }
+    if (!settings.phone1) {
+        sendSMS(settings.phone2, msg)
+    }
+    
     log.debug(msg)
 }
 private def desactivarAlarma() {
