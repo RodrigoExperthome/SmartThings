@@ -415,6 +415,8 @@ private def momentarySwitch() {
     }
 }
 
+//Alarma Armada Afuera implica que sensores armados afuera y casa tienen que activar alarma
+//Alarma Armada Casa implica que solo sensores armados casa tienen que activar alarma
 def onContacto(evt) {
     log.debug("Evento ${evt.displayName}")
     def contactoOk = state.sensorContacto.find() {it.idSensor == evt.deviceId}
@@ -422,9 +424,6 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
-    //Alarma Armada Afuera implica que sensores armados afuera y casa tienen que activar alarma
-    //Alarma Armada Casa implica que solo sensores armados casa tienen que activar alarma
-    
     //Solo aplicar delay para cuando alarma se encuentra en modo Armado Afuera.
     //Idea es que cuando uno llegue, pueda desactivar la alarma en keypad tasker.
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)) {
@@ -433,6 +432,7 @@ def onContacto(evt) {
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
             log.debug("Se detectó apertura de Puerta Principal ${settings.puertaPrincipal.displayName}... Armado Afuera en ${state.delay} seg.")
             runIn(state.delay, "activarAlarma")
+            state.alarmaDelay = true
         } else {
             activarAlarma()    
         }
@@ -481,37 +481,81 @@ def onControlRemoto(evt) {
     }
 }
 //Nombre Switch Momentario debe ser mismo que funciones definidas
-// away, home, disarm & panic (en ingles para uso con Amazon Echo)
+// away, home, & panic (en ingles para uso con Amazon Echo) Disarm no puede ser accionado desde echo.
 def onMomentary(evt) {
     "${evt.displayName}"()
 }
-//Falta definir mensajes para no activacion, del tipo revisarContactos()
+
 private def away() {
     log.debug("Preparando Armado Afuera")
-    if (revisarContacto() && !atomicState.afuera && !atomicState.alarmaOn && !state.alarmaDelay){
-        //Siempre se arma con delay
-        runIn(state.delay, "armadoAlarmaAfuera")
-        state.alarmaDelay = true
-    } 
+    if (revisarContacto()) {
+        if (!atomicState.afuera) {
+            if (!atomicState.alarmaOn) {
+                if (!state.alarmaDelay) {
+                    runIn(state.delay, "armadoAlarmaAfuera")
+                    state.alarmaDelay = true
+                } else {
+                    def msg = "Alarma en proceso de activación (delay), no se puede continuar con proceso armado"
+                    log.debug(msg)
+                    mySendPush(msg) 
+                }
+            } else {
+                def msg = "Alarma está sonando, desarme alarma para poder Armar Afuera"
+                log.debug(msg)
+                mySendPush(msg) 
+            }
+        } else {
+            def msg = "Alarma ya está Armada Afuera, no se puede continuar con proceso armado"
+            log.debug(msg)
+            mySendPush(msg)
+        }
+    }
 }
+
 private def home() {
     log.debug("Preparando Armado Casa")
-    if (revisarContacto() && !atomicState.casa && !atomicState.alarmaOn && !state.alarmaDelay){
-        armadoAlarmaCasa()
-    } 
+    if (revisarContacto()) {
+        if (!atomicState.casa) {
+            if (!atomicState.alarmaOn) {
+                if (!state.alarmaDelay) {
+                    armadoAlarmaCasa()
+                } else {
+                    def msg = "Alarma en proceso de activación (delay), no se puede continuar con proceso armado"
+                    log.debug(msg)
+                    mySendPush(msg) 
+                }
+            } else {
+                def msg = "Alarma está sonando, desarme alarma para poder Armar Casa"
+                log.debug(msg)
+                mySendPush(msg) 
+            }
+        } else {
+            def msg = "Alarma ya está Armada Casa, no se puede continuar con proceso armado"
+            log.debug(msg)
+            mySendPush(msg)
+        }
+    }
 }
 private def disarm() {
     log.debug("Preparando Desarmado")
     if (!atomicState.desarmado){
         desactivarAlarma()
-    } 
+    } else {
+        def msg = "Alarma ya está Desarmada"
+        log.debug(msg)
+        mySendPush(msg)
+    }
 }
 
 private def panic() {
     log.debug("Activando Panico")
     if (!atomicState.panico){
         activarPanico()
-    } 
+    } else {
+        def msg = "Alarma se encuentra en modo Panico"
+        log.debug(msg)
+        mySendPush(msg)
+    }
 }
 
 private def activarAlarma() {
@@ -526,16 +570,23 @@ private def activarAlarma() {
     def msg = "Alarma en ${location.name}! - ${state.evtDisplayName}"
     log.debug(msg)
     mySendPush(msg)
+    if (!settings.phone1) {
+        sendSMS(settings.phone1, msg)
+    }
+    if (!settings.phone2) {
+        sendSMS(settings.phone2, msg)
+    }
 }
 
 private def activarPanico() {
+    unschedule()
     state.afuera = false
     state.casa = false
     state.desarmado = false
     state.panico = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
-    
     state.alarmaOn = true
+    state.alarmaDelay = false
     settings.sirena*.strobe()
     settings.camaras*.take()
     def lucesOn = settings.luces?.findAll {it?.latestValue("switch").contains("off")}
@@ -544,17 +595,15 @@ private def activarPanico() {
         state.offLuces = lucesOn.collect {it.id}
     }
     def msg = "Boton de Panico en ${location.name}!"
-    
+    log.debug(msg)
     mySendPush(msg)
     //Solo SMS cuando suena la alarma/panico/desarmado.
     if (!settings.phone1) {
         sendSMS(settings.phone1, msg)
     }
-    if (!settings.phone1) {
+    if (!settings.phone2) {
         sendSMS(settings.phone2, msg)
     }
-    
-    log.debug(msg)
 }
 private def desactivarAlarma() {
     unschedule()
@@ -578,6 +627,13 @@ private def desactivarAlarma() {
     def msg = "Alarma en ${location.name} desactivada"
     mySendPush(msg)
     log.debug(msg)
+    //Solo SMS cuando suena la alarma/panico/desarmado.
+    if (!settings.phone1) {
+        sendSMS(settings.phone1, msg)
+    }
+    if (!settings.phone2) {
+        sendSMS(settings.phone2, msg)
+    }
 }
 private def armadoAlarmaAfuera(){
     state.desarmado = false
