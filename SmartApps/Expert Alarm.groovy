@@ -340,10 +340,8 @@ private def initialize() {
     state.panico = false
     state.desarmado = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
-    //Seteo Delay
+    //Seteo tiempo delay
     state.delay = settings.delayPuerta?.toInteger()
-    log.debug("${settings.puertaPrincipal.id} / ${settings.contacto}")
-    log.debug("${settings.movimiento}")
     //Seteo de otras variables de la alarma
     state.alarmaOn = false
     state.alarmaDelay = false
@@ -423,13 +421,13 @@ def onContacto(evt) {
         log.warn ("No se encuentra el dispositivo de contacto ${evt.deviceId}")
         return
     }
-    //Solo aplicar delay para armado afuera.
+    //Solo aplicar delay para cuando alarma se encuentra en modo Armado Afuera.
     if((contactoOk.tipoArmado == "Afuera" && state.afuera) || (contactoOk.tipoArmado == "Casa" && state.afuera)
     || (contactoOk.tipoArmado == "Casa" && state.casa)) {
         state.evtDisplayName = evt.displayName
-        log.debug("${contactoOk.idSensor} / ${state.puertaPrincipalId.idSensor}")
+        log.debug("${contactoOk.idSensor} / ${settings.puertaPrincipal.id}")
         if (contactoOk.idSensor == settings.puertaPrincipal.id) {
-            log.debug("Se detecto apertura de puerta principal ${settings.puertaPrincipal.displayName}... Proceso en ${state.delay}")
+            log.debug("Se detecto apertura de Puerta Principal ${settings.puertaPrincipal.displayName}... Armado Afuera en ${state.delay} seg.")
             runIn(state.delay, "activarAlarma")
         } else {
             activarAlarma()    
@@ -502,7 +500,7 @@ private def disarm() {
 }
 private def panic() {
     log.debug("Activando Panico")
-    if (!atomicState.panico && !state.alarmaOn){
+    if (!atomicState.panico){
         activarPanico()
     } 
 }
