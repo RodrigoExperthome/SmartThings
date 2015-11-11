@@ -550,9 +550,21 @@ private def disarm() {
 private def panic() {
     log.debug("Activando Panico")
     if (!atomicState.panico){
-        activarPanico()
+        if (!atomicState.alarmaOn) {
+            activarPanico()
+        } else {
+            def msg = "Alarma y Boton de Panico en ${location.name}! - Emergencia"
+            log.debug(msg)
+            mySendPush(msg)
+            if (!settings.phone1) {
+                sendSMSMessage(settings.phone1, msg)
+            }
+            if (!settings.phone2) {
+                sendSMSMessage(settings.phone2, msg)
+            }
+        }
     } else {
-        def msg = "Alarma se encuentra en modo Panico"
+        def msg = "Alarma se encuentra en modo Panico, desarme antes de continuar"
         log.debug(msg)
         mySendPush(msg)
     }
@@ -571,10 +583,10 @@ private def activarAlarma() {
     log.debug(msg)
     mySendPush(msg)
     if (!settings.phone1) {
-        sendSMS(settings.phone1, msg)
+        sendSMSMessage(settings.phone1, msg)
     }
     if (!settings.phone2) {
-        sendSMS(settings.phone2, msg)
+        sendSMSMessage(settings.phone2, msg)
     }
 }
 
@@ -599,10 +611,10 @@ private def activarPanico() {
     mySendPush(msg)
     //Solo SMS cuando suena la alarma/panico/desarmado.
     if (!settings.phone1) {
-        sendSMS(settings.phone1, msg)
+        sendSMSMessage(settings.phone1, msg)
     }
     if (!settings.phone2) {
-        sendSMS(settings.phone2, msg)
+        sendSMSMessage(settings.phone2, msg)
     }
 }
 private def desactivarAlarma() {
@@ -629,10 +641,10 @@ private def desactivarAlarma() {
     log.debug(msg)
     //Solo SMS cuando suena la alarma/panico/desarmado.
     if (!settings.phone1) {
-        sendSMS(settings.phone1, msg)
+        sendSMSMessage(settings.phone1, msg)
     }
     if (!settings.phone2) {
-        sendSMS(settings.phone2, msg)
+        sendSMSMessage(settings.phone2, msg)
     }
 }
 private def armadoAlarmaAfuera(){
@@ -661,7 +673,6 @@ private def revisarContacto(){
         algoAbierto.each() {
             log.debug("${it.displayName} esta abierta, no se puede continuar con proceso armado")
             mySendPush("${it.displayName} esta abierta, no se puede continuar con proceso armado")
-            //sendNotificationEvent("${it.displayName} esta abierto, no se puede continuar con proceso armado")
         }
         return false
     }
