@@ -228,6 +228,13 @@ def pageOpcionesActivacion() {
         multiple:   false,
         required:   false
     ]
+    def inputSwitchAlarmaOn = [
+        name:       "switchAlarmaOn",
+        type:       "capability.switch",
+        title:      "Alarma Sonando",
+        multiple:   false,
+        required:   false
+    ]
     def pageProperties = [
         name:       "pageOpcionesActivacion",
         nextPage:   "pageStatus",
@@ -254,6 +261,7 @@ def pageOpcionesActivacion() {
            input inputSwitchCasa
            input inputSwitchDesactivar
            input inputSwitchPanico
+           input inputSwitchAlarmaOn
         }
         
     }
@@ -345,6 +353,7 @@ private def initialize() {
     state.delay = settings.delayPuerta?.toInteger()
     //Seteo de otras variables de la alarma
     state.alarmaOn = false
+    statusAlarmaOn (state.alarmaOn)
     state.alarmaDelay = false
     state.offSwitches = []
     //Mapeo sensores y suscripcion a eventos
@@ -568,6 +577,7 @@ private def panic() {
 
 private def activarAlarma() {
     state.alarmaOn = true
+    statusAlarmaOn (state.alarmaOn)
     state.alarmaDelay = false
     settings.sirena*.strobe()
     settings.camaras*.take()
@@ -589,6 +599,7 @@ private def activarPanico() {
     state.panico = true
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     state.alarmaOn = true
+    statusAlarmaOn (state.alarmaOn)
     state.alarmaDelay = false
     settings.sirena*.strobe()
     settings.camaras*.take()
@@ -609,6 +620,7 @@ private def desactivarAlarma() {
     state.panico = false
     statusAlarma(state.afuera, state.casa, state.panico, state.desarmado)
     state.alarmaOn = false
+    statusAlarmaOn (state.alarmaOn)
     state.alarmaDelay = false
     settings.sirena*.off()
     def lucesOff = state.offLuces
@@ -713,6 +725,13 @@ private def statusAlarma(afueraBool, casaBool, panicoBool, desarmadoBool) {
         settings.switchPanico.off()
         settings.switchDesactivar.on()
         //log.debug ("Status actualizado a Desarmado")
+    }
+}
+private def statusAlarmaOn(alarmaOnBool) {
+    if (alarmaOnBool){
+        settings.switchAlarmaOn.on()
+    } else {
+        settings.switchAlarmaOn.off()
     }
 }
 //RunIn method 
