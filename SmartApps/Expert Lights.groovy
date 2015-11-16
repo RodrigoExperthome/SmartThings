@@ -71,8 +71,8 @@ def pageSetup() {
     	}
 		section("Use los siguientes...") { 	
         	input inputMotion
-		input inputContact
-		input inputPresence
+			input inputContact
+			input inputPresence
     	}
     	section("Para controlar...") {   
        		input inputLights         
@@ -98,10 +98,6 @@ def initialize() {
 	state.lucesOff = []
 	state.killedProcess = false
 	state.timerStart = false
-	state.lights = settings.luces
-	log.debug("${settings.luces} / ${state.lights}")
-	log.debug("${settings.movimiento}")
-	log.debug("${settings.contacto}")
 	if(movimiento) {
 		subscribe(settings.movimiento, "motion", onEvento)
 	}
