@@ -567,6 +567,12 @@ private def panic() {
             def msg = "Emergencia - Alarma y Boton de Panico en ${location.name} activados"
             log.debug(msg)
             mySendPush(msg)
+            if (settings.phone1) {
+                sendSmsMessage(phone1, msg)
+            }
+            if (settings.phone2) {
+                sendSmsMessage(phone2, msg)
+            }
         }
     } else {
         def msg = "Panico Fallido - Alarma está sonando"
@@ -589,6 +595,12 @@ private def activarAlarma() {
     def msg = "Alarma en ${location.name}! - ${state.evtDisplayName}"
     log.debug(msg)
     mySendPush(msg)
+    if (settings.phone1) {
+        sendSmsMessage(phone1, msg)
+    }
+    if (settings.phone2) {
+        sendSmsMessage(phone2, msg)
+    }
 }
 
 private def activarPanico() {
@@ -611,6 +623,12 @@ private def activarPanico() {
     def msg = "Boton de Panico en ${location.name}!"
     log.debug(msg)
     mySendPush(msg)
+        if (settings.phone1) {
+        sendSmsMessage(phone1, msg)
+    }
+    if (settings.phone2) {
+        sendSmsMessage(phone2, msg)
+    }
 }
 private def desactivarAlarma() {
     unschedule()
@@ -635,6 +653,12 @@ private def desactivarAlarma() {
     def msg = "Alarma en ${location.name} desactivada"
     mySendPush(msg)
     log.debug(msg)
+        if (settings.phone1) {
+        sendSmsMessage(phone1, msg)
+    }
+    if (settings.phone2) {
+        sendSmsMessage(phone2, msg)
+    }
 }
 private def armadoAlarmaAfuera(){
     state.desarmado = false
