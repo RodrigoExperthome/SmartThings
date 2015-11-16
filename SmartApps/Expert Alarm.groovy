@@ -20,6 +20,10 @@
  *
  *  You should have received a copy of the GNU General Public License along
  *  with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ *  Pipeline features: (i) Tasker integration, (ii) greyout para menu, (iii) simplificacion codigo para switch Status
+ * 
+ * 
  */
 
 import groovy.json.JsonSlurper
@@ -320,8 +324,6 @@ def pageOpcionesAlarma() {
             input inputLuces
             input inputCamaras
         }
-        //Falta implementar Mensaje Telefonico. 
-        //Solo Panico y Alarma?
         section("Notificaciones") {
             input inputPush
             input inputPhone1
