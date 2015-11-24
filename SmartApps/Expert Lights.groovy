@@ -126,17 +126,22 @@ def onContacto (evt) { onHandler (evt, "contact") }
 def onPresencia (evt) { onHandler (evt, "presence") }
 
 private def onHandler (evt, sensorType) {
-	def eventoActivacion (evt, sensorType)
+	if (!modo || modo.contains(location.mode))  {
+		if (inputOk(evt.deviceId, sensorType)) {
+			
+		}
+		
 	
+	
+		
+	}
 	
 	
 	
 }
 
 
-private def eventoActivacion (evt, sensorType) {
-	
-}
+
 
 
 //Cuando ocurre un evento, y aparece otro antes de que se desactive...
