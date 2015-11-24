@@ -1,11 +1,13 @@
 /**
- *  Author: Expert Home
- *  Date: 2015-07-15
+ *  Autor: Expert Home
+ *  Version 2.0
+ *  Cambios: (i) Arregla bug relativo con loop infinito, (ii) Define en la interfaz opción de override
+ *  de estado de la luz, (iii) Reprogramación mecanica (se elimina eventHandler unico)
  */
 definition(
     name: "Expert Lights",
     namespace: "ExpertHome",
-    author: "Expert Home",
+    author: "rodrigo@experthome.cl",
     description: "Controlador de luces",
     category: "Convenience",
     iconUrl: "http://experthome.cl/wp-content/uploads/2015/08/Lightning_20.png",
@@ -59,6 +61,14 @@ def pageSetup() {
         multiple:   false,
         required:   true
     ]
+    def inputEstado = [
+        name:       "estadoLuz",
+        type:       "bool",
+        title:      "Override estado luz?",
+        multiple:   false,
+        required:   true
+        defaultValue: true
+    ]
    def pageProperties = [
         name:       "pageSetup",
         nextPage:   null,
@@ -79,7 +89,8 @@ def pageSetup() {
     	}
 		section("Ajustes generales") {
         	input inputDelay
-       		input inputMode     
+       		input inputMode
+       		input inputEstado
         }      
     }
 }
@@ -98,16 +109,36 @@ def initialize() {
 	state.lucesOff = []
 	state.killedProcess = false
 	state.timerStart = false
+	
 	if(movimiento) {
-		subscribe(settings.movimiento, "motion", onEvento)
+		subscribe(settings.movimiento, "motion", onMovimiento)
 	}
 	if(contacto) {
-		subscribe(settings.contacto, "contact", onEvento)
+		subscribe(settings.contacto, "contact", onContacto)
 	}
 	if(presencia) {
-		subscribe(settings.presencia, "presence.present", onEvento)
+		subscribe(settings.presencia, "presence.present", onPresencia)
 	}
 }
+
+def onMovimiento (evt) { onHandler (evt, "motion") }
+def onContacto (evt) { onHandler (evt, "contact") }
+def onPresencia (evt) { onHandler (evt, "presence") }
+
+private def onHandler (evt, sensorType) {
+	def eventoActivacion (evt, sensorType)
+	
+	
+	
+	
+}
+
+
+private def eventoActivacion (evt, sensorType) {
+	
+}
+
+
 //Cuando ocurre un evento, y aparece otro antes de que se desactive...
 //state.offluces queda vacio, dado que primer evento las prendio.
 def onEvento(evt) {
