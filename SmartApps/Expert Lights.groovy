@@ -107,6 +107,7 @@ def updated() {
 
 def initialize() {
 	state.lucesOff = []
+	state.firstProcess = true
 	state.killedProcess = false
 	state.timerStart = false
 	
@@ -127,8 +128,24 @@ def onPresencia (evt) { onHandler (evt, "presence") }
 
 private def onHandler (evt, sensorType) {
 	if (!modo || modo.contains(location.mode))  {
-		if (inputOk(evt.deviceId, sensorType)) {
-			
+		if (inputOk(evt.device, sensorType)) {
+			log.debug ("'${sensorType}' detectado")
+			if (state.firstProcess) {
+				log.debug("Primer proceso de activacion de Expert Lights")
+				def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
+                log.debug("Las luces apagadas al iniciar activacion son : '${offLuces}'")             	
+            	state.lucesOff = offLuces.collect{it.id}
+                offLuces*.on()
+                state.firstProcess = false
+                if (sensorType = "presence") {
+                	log.debug("Proceso de presencia con delay obligado")   
+                    runIn(delay * 60, "apagarLuz")
+                	state.timerStart = true		
+                }
+			} else {
+				log.debug("Proceso posterior de activacion de Expert Lights")
+				
+			}
 		}
 		
 	
@@ -140,7 +157,22 @@ private def onHandler (evt, sensorType) {
 	
 }
 
-
+def inputOk (device, sensorType) {
+	def result
+	switch (sensorType) {
+		case "contact":
+			result = "open".equals(device.currentValue("contact"))
+			break
+		case "motion":
+			result = "active".equals(device.currentValue("motion"))
+			break
+		case "presence":
+			result = true
+			break
+		default:
+        	result = false	
+	}	
+}
 
 
 
