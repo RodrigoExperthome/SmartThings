@@ -1,8 +1,7 @@
 /**
  *  Autor: Expert Home
  *  Version 2.0
- *  Cambios: (i) Arregla bug relativo con loop infinito, (ii) Define en la interfaz opción de override
- *  de estado de la luz, (iii) Reprogramación mecanica (se elimina eventHandler unico)
+ *  
  */
 definition(
     name: "Expert Lights",
@@ -90,7 +89,7 @@ def pageSetup() {
 		section("Ajustes generales") {
         	input inputDelay
        		input inputMode
-       		input inputEstado
+       		//input inputEstado
         }      
     }
 }
@@ -122,27 +121,33 @@ def initialize() {
 	}
 }
 
-def onMovimiento (evt) { onHandler (evt, "motion") }
-def onContacto (evt) { onHandler (evt, "contact") }
-def onPresencia (evt) { onHandler (evt, "presence") }
+def onMovimiento (evt) { onHandler (evt, "movimiento") }
+def onContacto (evt) { onHandler (evt, "contacto") }
+def onPresencia (evt) { onHandler (evt, "presencia") }
 
 private def onHandler (evt, sensorType) {
 	if (!modo || modo.contains(location.mode))  {
 		if (inputOk(evt.device, sensorType)) {
-			log.debug ("'${sensorType}' detectado")
+			log.debug ("${sensorType} detectado en ${evt.device}")
 			if (state.timerStart) {
-            	log.debug("Cancelando proceso de delay, dado que aparecio nuevo evento")
+            	log.debug("Delay cancelado - evento detectado durante periodo de delay")
             	unschedule(apagarLuz)
             	state.timerStart = false
             	state.processNumber = state.processNumber + 1
+            	log.debug("Proceso nro ${state.processNumber} en cola de activacion")
         	} else {
         		if (state.processNumber == 0) {
 					log.debug("Primer proceso de activacion")
-					def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
-            		log.debug("Las luces apagadas al iniciar activacion son : '${offLuces}'")             	
-            		state.lucesOff = offLuces.collect{it.id}
-                	offLuces*.on()
-                	state.processNumber = state.processNumber + 1
+					state.lucesOff = settings.luces.findAll {it?.latestValue("switch").contains("off")}
+            		state.lucesOff*.on()
+            		log.debug("Las luces apagadas al iniciar activacion son: ${state.lucesOff}")        
+            		state.processNumber = state.processNumber + 1
+                	log.debug("Proceso nro ${state.processNumber} en cola de activacion")
+					//def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
+            		//log.debug("Las luces apagadas al iniciar activacion son : '${offLuces}'")             	
+            		//state.lucesOff = offLuces.collect{it.id}
+                	//offLuces*.on()
+                	
                 	if (sensorType == "presence") {
                 		log.debug("Proceso de presencia con delay obligado")   
                     	runIn(delay * 60, "apagarLuz")
@@ -150,34 +155,34 @@ private def onHandler (evt, sensorType) {
                 	}
 				} else {
 					state.processNumber = state.processNumber + 1
-					log.debug("Proceso ${state.processNumber} de activacion")
+					log.debug("Proceso nro ${state.processNumber} en cola de activacion")
 				}
         	}
 		} else {
 			if (state.processNumber == 1) {
 				if (settings.delay) {
-            		log.debug("Apagado en '${delay}' minutos ")
+            		log.debug("Apagando luces en ${delay} minutos ")
                 	runIn(delay * 60, "apagarLuz")
                 	state.timerStart = true
             	}		
 			}
 			state.processNumber = state.processNumber - 1
-			log.debug("Proceso ${state.processNumber} de activacion")
+			log.debug("Proceso nro ${state.processNumber} en cola de activacion")
 		}
 	
 	}
 }
-
+// Metodo para revisar si evento es apertura/movimiento o cierre/no movimiento
 def inputOk (device, sensorType) {
 	def result
 	switch (sensorType) {
-		case "contact":
+		case "contacto":
 			result = "open".equals(device.currentValue("contact"))
 			break
-		case "motion":
+		case "movimiento":
 			result = "active".equals(device.currentValue("motion"))
 			break
-		case "presence":
+		case "presencia":
 			result = true
 			break
 		default:
@@ -186,13 +191,8 @@ def inputOk (device, sensorType) {
 }
 
 private def apagarLuz() {
-	def lucesOn_Off = state.lucesOff
-	log.debug ("Luces a apagar son: '${lucesOn_Off}'")
-    settings.luces.each() {
-    	if (lucesOn_Off.contains (it.id)){
-        	it.off()
-    	}
-   	}
+	log.debug ("Luces a apagar son: ${state.lucesOff}")
+    state.lucesOff*.off()
    	state.lucesOff = []
     state.timerStart = false
 }
