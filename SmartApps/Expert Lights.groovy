@@ -107,7 +107,7 @@ def updated() {
 
 def initialize() {
 	state.lucesOff = []
-	state.firstProcess = true
+	state.processNumber = 0
 	state.killedProcess = false
 	state.timerStart = false
 	
@@ -130,22 +130,40 @@ private def onHandler (evt, sensorType) {
 	if (!modo || modo.contains(location.mode))  {
 		if (inputOk(evt.device, sensorType)) {
 			log.debug ("'${sensorType}' detectado")
-			if (state.firstProcess) {
-				log.debug("Primer proceso de activacion de Expert Lights")
+			if (state.timerStart) {
+            	log.debug("Cancelando proceso de delay, dado que aparecio nuevo evento")
+            	unschedule(apagarLuz)
+            	state.timerStart = false
+        	} else {
+        		
+        	}
+			
+			
+			if (state.processNumber == 0) {
+				log.debug("Primer proceso de activacion")
 				def offLuces = settings.luces.findAll {it?.latestValue("switch").contains("off")}
                 log.debug("Las luces apagadas al iniciar activacion son : '${offLuces}'")             	
             	state.lucesOff = offLuces.collect{it.id}
                 offLuces*.on()
-                state.firstProcess = false
+                state.processNumber += 1
                 if (sensorType = "presence") {
                 	log.debug("Proceso de presencia con delay obligado")   
                     runIn(delay * 60, "apagarLuz")
                 	state.timerStart = true		
                 }
 			} else {
-				log.debug("Proceso posterior de activacion de Expert Lights")
-				
+				log.debug("Proceso ${state.processNumber} de activacion")
+				state.processNumber += 1
 			}
+		} else {
+			if (state.processNumber == 1) {
+				if (settings.delay) {
+            		log.debug("Apagado en '${delay}' minutos ")
+                	runIn(delay * 60, "apagarLuz")
+                	state.timerStart = true
+            	}		
+			}
+			state.processNumber -= 1
 		}
 		
 	
