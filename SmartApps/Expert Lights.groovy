@@ -124,7 +124,8 @@ def initialize() {
 def onMovimiento (evt) { onHandler (evt, "movimiento") }
 def onContacto (evt) { onHandler (evt, "contacto") }
 def onPresencia (evt) { onHandler (evt, "presencia") }
-
+//Revisar codigo para escenarios que existan puertas abiertas antes de la activacion (estaba abierta en modo dia)
+//dado que processNumber seria negativo
 private def onHandler (evt, sensorType) {
 	if (!modo || modo.contains(location.mode))  {
 		if (inputOk(evt.device, sensorType)) {
