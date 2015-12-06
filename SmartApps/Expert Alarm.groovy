@@ -21,7 +21,7 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
- *  Pipeline features: (i) Tasker integration, (ii) greyout para menu, (iii) simplificacion codigo para switch Status
+ *  
  * 
  * 
  */
@@ -551,7 +551,7 @@ private def home() {
 }
 private def disarm() {
     log.debug("Preparando Desarmado...")
-    if (!atomicState.desarmado){
+    if ((!atomicState.desarmado) || (atomicState.desarmado && state.alarmaDelay)){
         desactivarAlarma()
     } else {
         def msg = "Desarmado Fallido - Alarma se encuentra Desarmada"
