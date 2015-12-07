@@ -1,7 +1,7 @@
 /**
  *  Autor: Expert Home
  *  Version 2.0
- *  
+ *  To analyze if app is deprecated by Rule Machine.....
  */
 definition(
     name: "Expert Lights",
@@ -167,7 +167,13 @@ private def onHandler (evt, sensorType) {
                 	state.timerStart = true
             	}		
 			}
-			state.processNumber = state.processNumber - 1
+			if (state.processNumber == 0) {
+				//Problema con iniciar aplicacion de la rutina con evento negativo, ie,
+				//cambio de modo, y ventana abierta.
+				log.debug("Proceso Negativo - Seguir depurando programación")
+			} else {
+				state.processNumber = state.processNumber - 1	
+			}
 			log.debug("Proceso nro ${state.processNumber} en cola de activacion")
 		}
 	
