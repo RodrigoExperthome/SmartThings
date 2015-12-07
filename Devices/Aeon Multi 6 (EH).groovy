@@ -13,8 +13,9 @@
  */
 
 metadata {
-	definition (name: "Aeon Multisensor 6", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "ExpertHome Aeon Multisensor 6", namespace: "ExpertHome", author: "rodrigo@experthome.cl") {
 		capability "Motion Sensor"
+		capability "Acceleration Sensor"
 		capability "Temperature Measurement"
 		capability "Relative Humidity Measurement"
 		capability "Illuminance Measurement"
@@ -24,7 +25,6 @@ metadata {
 		capability "Battery"
 
 		attribute "tamper", "enum", ["detected", "clear"]
-
 		fingerprint deviceId: "0x2101", inClusters: "0x5E,0x86,0x72,0x59,0x85,0x73,0x71,0x84,0x80,0x30,0x31,0x70,0x7A", outClusters: "0x5A"
 	}
 
@@ -69,6 +69,10 @@ metadata {
 				attributeState "active", label:'motion', icon:"st.motion.motion.active", backgroundColor:"#53a7c0"
 				attributeState "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
 			}
+			tileAttribute("device.acceleration", key: "SECONDARY_CONTROL") {
+            	attributeState("active", label:'vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+				attributeState("inactive", label:'still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
+            }
 		}
 		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
 			state "temperature", label:'${currentValue}°',
@@ -83,42 +87,38 @@ metadata {
 			]
 		}
 		valueTile("humidity", "device.humidity", inactiveLabel: false, width: 2, height: 2) {
-			state "humidity", label:'${currentValue}% humidity', unit:""
+			state "humidity", label:'${currentValue}% humidty', unit:""
 		}
 		valueTile("illuminance", "device.illuminance", inactiveLabel: false, width: 2, height: 2) {
 			state "luminosity", label:'${currentValue} ${unit}', unit:"lux"
 		}
-		valueTile("tamper","device.tamper", inactiveLabel: false, width: 2, height: 2) {
-			state "tamper",label:'tamper',icon:"st.motion.motion.active",backgroundColor:"#ff0000"
-                	state "clear",label:'clear',icon:"st.motion.motion.inactive",backgroundColor:"#00ff00"
+		valueTile("acceleration","device.acceleration", inactiveLabel: false, width: 2, height: 2) {
+			state("active", label:'vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+			state("inactive", label:'still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
 		}
 		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
-		valueTile("configure","device.configure",inactiveLabel: false, decoration: "flat") {
+		valueTile("configure","device.configure",inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "configure", label:'config', action:"configure", icon:"st.secondary.tools"
 		}
 
-		main(["motion", "temperature", "humidity", "illuminance","tamper"])
-		details(["motion", "temperature", "humidity", "illuminance","tamper","battery","configure"])
+		main(["motion", "temperature", "humidity", "illuminance","acceleration"])
+		details(["motion", "temperature", "humidity", "illuminance","acceleration","battery","configure"])
 	}
 }
 
-def updated()
-{
+def updated() {
 	if (state.sec && !isConfigured()) {
 		// in case we miss the SCSR
 		response(configure())
 	}
 }
-
-def parse(String description)
-{
+def parse(String description) {
 	def result = null
 	if (description.startsWith("Err 106")) {
 		state.sec = 0
-		result = createEvent( name: "secureInclusion", value: "failed", isStateChange: true,
-			descriptionText: "This sensor failed to complete the network security key exchange. If you are unable to control it via SmartThings, you must remove it from your network and add it again.")
+		result = createEvent(name: "secureInclusion", value: "failed", isStateChange: true, descriptionText: "This sensor failed to complete the network security key exchange. If you are unable to control it via SmartThings, you must remove it from your network and add it again.")
 	} else if (description != "updated") {
 		def cmd = zwave.parse(description, [0x31: 5, 0x30: 2, 0x84: 1])
 		if (cmd) {
@@ -128,11 +128,9 @@ def parse(String description)
 	log.debug "Parsed '${description}' to ${result.inspect()}"
 	return result
 }
-
-def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
-{
+//0x84: 1
+def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
 	def result = [createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)]
-
 	if (!isConfigured()) {
 		// we're still in the process of configuring a newly joined device
 		log.debug("late configure")
@@ -142,7 +140,7 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
 	}
 	result
 }
-
+//0x98
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
 	def encapsulatedCommand = cmd.encapsulatedCommand([0x31: 5, 0x30: 2, 0x84: 1])
 	state.sec = 1
@@ -154,11 +152,11 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulat
 		createEvent(descriptionText: cmd.toString())
 	}
 }
-
+//0x98
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityCommandsSupportedReport cmd) {
 	response(configure())
 }
-
+//0x80
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	def map = [ name: "battery", unit: "%" ]
 	if (cmd.batteryLevel == 0xFF) {
@@ -171,9 +169,8 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	state.lastbatt = now()
 	createEvent(map)
 }
-
-def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd)
-{
+//0x31
+def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
 	def map = [:]
 	switch (cmd.sensorType) {
 		case 1:
@@ -213,26 +210,26 @@ def motionEvent(value) {
 	}
 	createEvent(map)
 }
-
+//0x30
 def zwaveEvent(physicalgraph.zwave.commands.sensorbinaryv2.SensorBinaryReport cmd) {
 	setConfigured()
 	motionEvent(cmd.sensorValue)
 }
-
+//0x20
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
 	motionEvent(cmd.value)
 }
-
+//0x71
 def zwaveEvent(physicalgraph.zwave.commands.notificationv3.NotificationReport cmd) {
 	def result = []
 	if (cmd.notificationType == 7) {
 		switch (cmd.event) {
 			case 0:
 				result << motionEvent(0)
-				result << createEvent(name: "tamper", value: "clear", displayed: false)
+				result << createEvent(name: "acceleration", value: "inactive", descriptionText: "$device.displayName tamper cleared", displayed: false)
 				break
 			case 3:
-				result << createEvent(name: "tamper", value: "detected", descriptionText: "$device.displayName was moved")
+				result << createEvent(name: "acceleration", value: "active", descriptionText: "$device.displayName was moved")
 				break
 			case 7:
 				result << motionEvent(1)
@@ -243,7 +240,7 @@ def zwaveEvent(physicalgraph.zwave.commands.notificationv3.NotificationReport cm
 	}
 	result
 }
-
+//0x71?
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	createEvent(descriptionText: cmd.toString(), isStateChange: false)
 }
@@ -256,15 +253,35 @@ def configure() {
 	}
 	log.debug "Multi 6 configure()"
 	def request = [
+		// set wakeup interval to 10 mins
+		zwave.wakeUpV1.wakeUpIntervalSet(seconds:600, nodeid:zwaveHubNodeId),
+		
+		// Get Version information
+        zwave.versionV1.versionGet(),
+        zwave.firmwareUpdateMdV2.firmwareMdGet(),
+		
+		// send temperature, humidity, illuminance, ultraviolet based on reporting interval preference default 10 mins
+		// A entender estructura numeros binarios
+		zwave.configurationV1.configurationSet(parameterNumber: 0x65, size: 4, scaledConfigurationValue: 128|64|32|16),
+		
+		// configure frequency of reporting (10 minutos)
+		zwave.configurationV1.configurationSet(parameterNumber: 0x6F,size: 4, scaledConfigurationValue: 600),
+		zwave.configurationV1.configurationGet(parameterNumber: 0x6F),
+		
 		// send no-motion report 20 seconds after motion stops
-		zwave.configurationV1.configurationSet(parameterNumber: 3, size: 2, scaledConfigurationValue: 20),
-
-		// report every 8 minutes (threshold reports don't work on battery power)
-		zwave.configurationV1.configurationSet(parameterNumber: 111, size: 4, scaledConfigurationValue: 8*60),
-
-		// report automatically on threshold change
-		zwave.configurationV1.configurationSet(parameterNumber: 40, size: 1, scaledConfigurationValue: 1),
-
+		zwave.configurationV1.configurationSet(parameterNumber: 0x03, size: 2, scaledConfigurationValue: 20),
+		zwave.configurationV1.configurationGet(parameterNumber: 0x03),
+		
+		// enable motion sensor and set sensitivity (default: 4)
+        zwave.configurationV1.configurationSet(parameterNumber: 0x04, size: 1, scaledConfigurationValue: 4),
+		zwave.configurationV1.configurationGet(parameterNumber: 0x04),
+		
+		// send binary sensor report for motion (sendBinaryReport CC)
+		zwave.configurationV1.configurationSet(parameterNumber: 0x05, size: 1, scaledConfigurationValue: 2),
+		
+		// report automatically on threshold change (Disabled for testing interval report)
+		zwave.configurationV1.configurationSet(parameterNumber: 0x28, size: 0, scaledConfigurationValue: 0),
+		
 		zwave.batteryV1.batteryGet(),
 		zwave.sensorBinaryV2.sensorBinaryGet(sensorType: 0x0C),
     ]
