@@ -10,6 +10,8 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ * To Do: (i) Probar estructura actual con baterias, (ii) Probar estructura de threshold con baterias (mando todos los datos), 
+ * (iii) Probar estructura de threshold con baterias (mando solo dato threshold)
  */
 
 metadata {
@@ -23,7 +25,7 @@ metadata {
 		capability "Configuration"
 		capability "Sensor"
 		capability "Battery"
-
+		//Revisar attribute
 		attribute "tamper", "enum", ["detected", "clear"]
 		fingerprint deviceId: "0x2101", inClusters: "0x5E,0x86,0x72,0x59,0x85,0x73,0x71,0x84,0x80,0x30,0x31,0x70,0x7A", outClusters: "0x5A"
 	}
@@ -69,9 +71,8 @@ metadata {
 				attributeState "active", label:'motion', icon:"st.motion.motion.active", backgroundColor:"#53a7c0"
 				attributeState "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
 			}
-			tileAttribute("device.acceleration", key: "SECONDARY_CONTROL") {
-            	attributeState("active", label:'vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
-				attributeState("inactive", label:'still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
+			tileAttribute("device.illuminance", key: "SECONDARY_CONTROL") {
+            	attributeState("luminosity", label:'${currentValue} ${unit}', unit:"lux")
             }
 		}
 		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
@@ -86,12 +87,13 @@ metadata {
 				[value: 98, color: "#bc2323"]
 			]
 		}
-		valueTile("humidity", "device.humidity", inactiveLabel: false, width: 2, height: 2) {
-			state "humidity", label:'${currentValue}% humidty', unit:""
-		}
 		valueTile("illuminance", "device.illuminance", inactiveLabel: false, width: 2, height: 2) {
 			state "luminosity", label:'${currentValue} ${unit}', unit:"lux"
 		}
+		valueTile("humidity", "device.humidity", inactiveLabel: false, width: 2, height: 2) {
+			state "humidity", label:'${currentValue}%', unit:""
+		}
+		//Revisar porque no se actualiza
 		valueTile("acceleration","device.acceleration", inactiveLabel: false, width: 2, height: 2) {
 			state("active", label:'vibration', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
 			state("inactive", label:'still', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
@@ -99,12 +101,12 @@ metadata {
 		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "battery", label:'${currentValue}% battery', unit:""
 		}
-		valueTile("configure","device.configure",inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+		valueTile("configure","device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 			state "configure", label:'config', action:"configure", icon:"st.secondary.tools"
 		}
 
 		main(["motion", "temperature", "humidity", "illuminance","acceleration"])
-		details(["motion", "temperature", "humidity", "illuminance","acceleration","battery","configure"])
+		details(["motion", "temperature", "illuminance", "humidity","acceleration","battery","configure"])
 	}
 }
 
@@ -280,7 +282,7 @@ def configure() {
 		zwave.configurationV1.configurationSet(parameterNumber: 0x05, size: 1, scaledConfigurationValue: 2),
 		
 		// report automatically on threshold change (Disabled for testing interval report)
-		zwave.configurationV1.configurationSet(parameterNumber: 0x28, size: 0, scaledConfigurationValue: 0),
+		zwave.configurationV1.configurationSet(parameterNumber: 0x28, size: 1, scaledConfigurationValue: 0),
 		
 		zwave.batteryV1.batteryGet(),
 		zwave.sensorBinaryV2.sensorBinaryGet(sensorType: 0x0C),
