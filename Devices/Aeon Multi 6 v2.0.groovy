@@ -98,7 +98,7 @@ metadata {
 			]
 		}
 		valueTile("humidity", "device.humidity", inactiveLabel: false, width: 2, height: 2) {
-			state "humidity", label:'${currentValue}% humidity', unit:""
+			state "humidity", label:'${currentValue}%', unit:""
 		}
 
 		valueTile("illuminance", "device.illuminance", inactiveLabel: false, width: 2, height: 2) {
@@ -106,7 +106,7 @@ metadata {
 		}
 
 		valueTile("ultravioletIndex", "device.ultravioletIndex", inactiveLabel: false, width: 2, height: 2) {
-			state "ultravioletIndex", label:'${currentValue} UV index', unit:""
+			state "ultravioletIndex", label:'${currentValue} UV', unit:""
 		}
 
 		valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
