@@ -13,8 +13,9 @@
  */
 
 metadata {
-	definition (name: "Aeon Multisensor 6", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Aeon Multisensor 6 v2.0", namespace: "Experthome", author: "rodrigo@experthome.cl") {
 		capability "Motion Sensor"
+		capability "Acceleration Sensor"
 		capability "Temperature Measurement"
 		capability "Relative Humidity Measurement"
 		capability "Illuminance Measurement"
@@ -84,6 +85,10 @@ metadata {
 				attributeState "active", label:'motion', icon:"st.motion.motion.active", backgroundColor:"#53a7c0"
 				attributeState "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
 			}
+			tileAttribute("device.acceleration", key: "SECONDARY_CONTROL") {
+            	state("active", label:'tamper', icon:"st.motion.acceleration.active", backgroundColor:"#53a7c0")
+				state("inactive", label:'clear', icon:"st.motion.acceleration.inactive", backgroundColor:"#ffffff")
+            }
 		}
 		valueTile("temperature", "device.temperature", inactiveLabel: false, width: 2, height: 2) {
 			state "temperature", label:'${currentValue}°',
@@ -120,9 +125,12 @@ metadata {
 		valueTile("powerSupply", "device.powerSupply", height: 2, width: 2, decoration: "flat") {
 			state "powerSupply", label:'${currentValue} powered', backgroundColor:"#ffffff"
 		}
+		valueTile("configure","device.configure", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "configure", label:'config', action:"configure", icon:"st.secondary.tools"
+		}
 
-		main(["motion", "temperature", "humidity", "illuminance", "ultravioletIndex"])
-		details(["motion", "temperature", "humidity", "illuminance", "ultravioletIndex", "batteryStatus"])
+		main(["motion", "temperature", "humidity", "illuminance"])
+		details(["motion", "temperature", "illuminance", "humidity", "batteryStatus", "powerSupply","configure"])
 	}
 }
 
