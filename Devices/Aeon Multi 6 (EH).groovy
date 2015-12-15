@@ -15,7 +15,7 @@
  */
 
 metadata {
-	definition (name: "ExpertHome Aeon Multisensor 6", namespace: "ExpertHome", author: "rodrigo@experthome.cl") {
+	definition (name: "Aeon Multisensor 6 ExpertHome", namespace: "ExpertHome", author: "rodrigo@experthome.cl") {
 		capability "Motion Sensor"
 		capability "Acceleration Sensor"
 		capability "Temperature Measurement"
@@ -27,6 +27,7 @@ metadata {
 		capability "Battery"
 		//Revisar attribute
 		attribute "tamper", "enum", ["detected", "clear"]
+		//fingerprint deviceId: "0x2101", inClusters: "0x5E,0x86,0x72,0x59,0x85,0x73,0x71,0x84,0x80,0x30,0x31,0x70,0xEF,0x5A,0x98,0x7A"
 		fingerprint deviceId: "0x2101", inClusters: "0x5E,0x86,0x72,0x59,0x85,0x73,0x71,0x84,0x80,0x30,0x31,0x70,0x7A", outClusters: "0x5A"
 	}
 
@@ -105,7 +106,7 @@ metadata {
 			state "configure", label:'config', action:"configure", icon:"st.secondary.tools"
 		}
 
-		main(["motion", "temperature", "humidity", "illuminance","acceleration"])
+		main()
 		details(["motion", "temperature", "illuminance", "humidity","acceleration","battery","configure"])
 	}
 }
@@ -122,6 +123,7 @@ def parse(String description) {
 		state.sec = 0
 		result = createEvent(name: "secureInclusion", value: "failed", isStateChange: true, descriptionText: "This sensor failed to complete the network security key exchange. If you are unable to control it via SmartThings, you must remove it from your network and add it again.")
 	} else if (description != "updated") {
+		//def cmd = zwave.parse(description, [0x31: 5, 0x30: 2, 0x7A: 2, 0x84: 1, 0x86: 1])
 		def cmd = zwave.parse(description, [0x31: 5, 0x30: 2, 0x84: 1])
 		if (cmd) {
 			result = zwaveEvent(cmd)
@@ -144,6 +146,7 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
 }
 //0x98
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
+	//def encapsulatedCommand = cmd.encapsulatedCommand([0x31: 5, 0x30: 2, 0x7A: 2, 0x84: 1, 0x86: 1])
 	def encapsulatedCommand = cmd.encapsulatedCommand([0x31: 5, 0x30: 2, 0x84: 1])
 	state.sec = 1
 	log.debug "encapsulated: ${encapsulatedCommand}"
@@ -158,6 +161,26 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulat
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityCommandsSupportedReport cmd) {
 	response(configure())
 }
+
+//Para revisar si informacion ha sido actualizada
+def zwaveEvent(physicalgraph.zwave.commands.versionv1.VersionCommandClassReport cmd) {
+	if (state.debug) log.debug "---COMMAND CLASS VERSION REPORT V1--- ${device.displayName} has command class version: ${cmd.commandClassVersion} - payload: ${cmd.payload}"
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.versionv1.VersionReport cmd) {
+	def fw = "${cmd.applicationVersion}.${cmd.applicationSubVersion}"
+	updateDataValue("fw", fw)
+	if (state.debug) log.debug "---VERSION REPORT V1--- ${device.displayName} is running firmware version: $fw, Z-Wave version: ${cmd.zWaveProtocolVersion}.${cmd.zWaveProtocolSubVersion}"
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport cmd) {
+    if (state.debug) log.debug "---CONFIGURATION REPORT V2--- ${device.displayName} parameter ${cmd.parameterNumber} with a byte size of ${cmd.size} is set to ${cmd.configurationValue}"
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport cmd) {
+    if (state.debug) log.debug "---CONFIGURATION REPORT V1--- ${device.displayName} parameter ${cmd.parameterNumber} with a byte size of ${cmd.size} is set to ${cmd.configurationValue}"
+}
+
 //0x80
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	def map = [ name: "battery", unit: "%" ]
@@ -228,7 +251,7 @@ def zwaveEvent(physicalgraph.zwave.commands.notificationv3.NotificationReport cm
 		switch (cmd.event) {
 			case 0:
 				result << motionEvent(0)
-				result << createEvent(name: "acceleration", value: "inactive", descriptionText: "$device.displayName tamper cleared", displayed: false)
+				result << createEvent(name: "acceleration", value: "inactive", descriptionText: "$device.displayName tamper cleared")
 				break
 			case 3:
 				result << createEvent(name: "acceleration", value: "active", descriptionText: "$device.displayName was moved")
@@ -278,6 +301,9 @@ def configure() {
         zwave.configurationV1.configurationSet(parameterNumber: 0x04, size: 1, scaledConfigurationValue: 4),
 		zwave.configurationV1.configurationGet(parameterNumber: 0x04),
 		
+		// Enable the function of touch sensor
+        zwave.configurationV1.configurationSet(parameterNumber: 0x07, size: 1, scaledConfigurationValue: 1),
+        
 		// send binary sensor report for motion (sendBinaryReport CC)
 		zwave.configurationV1.configurationSet(parameterNumber: 0x05, size: 1, scaledConfigurationValue: 2),
 		
@@ -286,6 +312,9 @@ def configure() {
 		
 		zwave.batteryV1.batteryGet(),
 		zwave.sensorBinaryV2.sensorBinaryGet(sensorType: 0x0C),
+		
+		// Can use the zwaveHubNodeId variable to add the hub to the device's associations:
+		zwave.associationV1.associationSet(groupingIdentifier:2, nodeId:zwaveHubNodeId)
     ]
 	commands(request) + ["delay 20000", zwave.wakeUpV1.wakeUpNoMoreInformation().format()]
 }
