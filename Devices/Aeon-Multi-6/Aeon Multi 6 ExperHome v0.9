@@ -1,7 +1,12 @@
 /*
- * 
- * Variation on Robert Vandervoort 6/19/2015 - 11/10/2015 V2.2 device type.
- * ExpertHome changes to test threshold reporting on battery operated modules.
+ * V 2.2 of Multisensor 6 code 10/10/2015
+ * Uses some original code from @Duncan Aeon Multisensor 6 code for secure configuration, Copyright 2015 SmartThings, modified for setting
+ * preferences around configuration and the reporting of tampering and ultraviolet index, and reconfiguration after pairing.
+ * 2.0 brings about the new style look with multiattribute tile for temp and humidity and all adjustments working
+ * 2.1 provides vibration sensor output to smartthings in the form of the acceleration capability for use in the home security section. You can create push notifications, SMS, and trigger
+cameras and the like if you sensor is tampered with or it detects a significant enough vibration, like a door slamming close by.
+
+ * Robert Vandervoort 6/19/2015 - 11/10/2015
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -18,23 +23,20 @@
 *- Log in to the IDE and add my device type "from code" copy pasting the raw code from github and save it
 *- Open the live logging view in a new tab
 *- With the sensor plugged in via usb, note the light color. It should cycle through many different colors continually.
-   If it does not, it was previously joined. The sensor may come this way from wherever you ordered it. To reset, perform the following:
-   Hold the action button for about 25 seconds until the light blinks red quickly and then the colors cycle. It is now reset.
+If it does not, it was previously joined. The sensor may come this way from wherever you ordered it. To reset, perform the following:
+Hold the action button for about 25 seconds until the light blinks red quickly and then the colors cycle. It is now reset.
 *- Put smart things into inclusion mode by doing the add device procedure on the app.
-*- Quickly double tap the action button. The light on the sensor should blink blue several times quickly. 
-   Please read the rest before continuing!
-*- Before you do anything else and when you see the device smartthings found on the screen, 
-   go to your devices in the IDE, select the newly added sensor and edit it.
-   Change the device type to my device type and save it.
-*- Back on your app, click the device on the screen to add it. Walk through the next few steps setting preferences 
-   and smart app stuff if you like. After you save the preferences the device should update and send the configuration. 
-   You can see this on the live logging view in the debug comments.
-   It may help to select just the newly added sensor from the available items to see past the other noise in the view. When in doubt, hit the configure tile and watch..
+*- Quickly double tap the action button. The light on the sensor should blink blue several times quickly. Please read the rest before continuing!
+*- Before you do anything else and when you see the device smartthings found on the screen, go to your devices in the IDE, select the newly added sensor and edit it.
+Change the device type to my device type and save it.
+*- Back on your app, click the device on the screen to add it. Walk through the next few steps setting preferences and smart app stuff if you like.
+After you save the preferences the device should update and send the configuration. You can see this on the live logging view in the debug comments.
+It may help to select just the newly added sensor from the available items to see past the other noise in the view. When in doubt, hit the configure tile and watch..
 *- That's it. 
  */
 
  metadata {
-	definition (name: "Aeon Multisensor 6 ExpertHome v0.9", namespace: "ExpertHome", author: "rodrigo@experthome.cl") {
+	definition (name: "Aeon Multisensor 6 - RV 2.3", namespace: "robertvandervoort", author: "Robert Vandervoort") {
 		capability "Motion Sensor"
 		capability "Acceleration Sensor"
 		capability "Temperature Measurement"
@@ -45,15 +47,15 @@
 		capability "Sensor"
 		capability "Battery"
 		
-		// Command Classes supported - 94, 134, 114, 132, 89, 133, 115, 113, 128, 48, 49, 112, 152, 122
+		// CCs supported - 94, 134, 114, 132, 89, 133, 115, 113, 128, 48, 49, 112, 152, 122
 		attribute "tamper", "enum", ["detected", "clear"]
 		fingerprint deviceId: "0x2101", inClusters: "0x5E,0x86,0x72,0x59,0x85,0x73,0x71,0x84,0x80,0x30,0x31,0x70,0xEF,0x5A,0x98,0x7A"
-	}
+		}
 	simulator {
-		status "no motion": "command: 9881, payload: 00300300"
-		status "motion": "command: 9881, payload: 003003FF"
-        status "clear": " command: 9881, payload: 0071050000000007030000"
-        status "tamper": "command: 9881, payload: 007105000000FF07030000"
+		status "no motion" : "command: 9881, payload: 00300300"
+		status "motion"    : "command: 9881, payload: 003003FF"
+        status "clear" : " command: 9881, payload: 0071050000000007030000"
+        status "tamper" : "command: 9881, payload: 007105000000FF07030000"
         
         for (int i = 0; i <= 100; i += 20) {
 			status "temperature ${i}F": new physicalgraph.zwave.Zwave().securityV1.securityMessageEncapsulation().encapsulate(
@@ -103,14 +105,13 @@
 			).incomingMessage()
 		status "wake up": "command: 8407, payload:"
 	}
-	//SmartApp UI
 	tiles (scale: 2) {
-		multiAttributeTile(name:"main", type:"generic", width:6, height:4) {
+		multiAttributeTile(name:"main", type: "generic", width: 6, height: 4){
 			tileAttribute ("device.motion", key: "PRIMARY_CONTROL") {
 				attributeState "active", label:'motion', icon:"st.motion.motion.active", backgroundColor:"#53a7c0"
 				attributeState "inactive", label:'no motion', icon:"st.motion.motion.inactive", backgroundColor:"#ffffff"
 			}
-            tileAttribute("device.illuminance", key: "SECONDARY_CONTROL") {
+			tileAttribute("device.illuminance", key: "SECONDARY_CONTROL") {
             	attributeState "luminosity",label:'${currentValue} ${unit}', unit:"lux", backgroundColors:[
                 	[value: 0, color: "#000000"],
                     [value: 1, color: "#060053"],
@@ -123,9 +124,13 @@
 				]
 			}
 		}
-        valueTile("humidity","device.humidity", width: 2, height: 2) {
-           	state "humidity",label:'Humidity ${currentValue}%',unit:""
-		}
+        standardTile("motion","device.motion", width: 2, height: 2) {
+            	state "active",label:'motion',icon:"st.motion.motion.active",backgroundColor:"#53a7c0"
+                state "inactive",label:'no motion',icon:"st.motion.motion.inactive",backgroundColor:"#ffffff"
+			}
+		valueTile("humidity","device.humidity", width: 2, height: 2) {
+           	state "humidity",label:'RH ${currentValue} %',unit:""
+			}
 		valueTile("illuminance","device.illuminance", width: 2, height: 2) {
             	state "luminosity",label:'${currentValue} ${unit}', unit:"lux", backgroundColors:[
                 	[value: 0, color: "#000000"],
@@ -139,7 +144,7 @@
 				]
 			}
 		valueTile("ultravioletIndex","device.ultravioletIndex", width: 2, height: 2) {
-				state "ultravioletIndex",label:'${currentValue} UV',unit:""
+				state "ultravioletIndex",label:'${currentValue} UV INDEX',unit:""
 			}
 		standardTile("acceleration", "device.acceleration", width: 2, height: 2) {
 			state("active", label:'tamper', icon:"st.motion.acceleration.active", backgroundColor:"#ff0000")
@@ -152,7 +157,7 @@
 			state "configure", label:'config', action:"configure", icon:"st.secondary.tools"
 		}
 		main(["main"])
-		details(["main","humidity","illuminance","motion","acceleration","battery","configure"])
+		details(["main","humidity","illuminance","ultravioletIndex","motion","acceleration","battery","configure"])
 	}
 	
     preferences {
@@ -160,7 +165,6 @@
 			title: "Enable debug logging?",
 			defaultValue: false,
 			displayDuringSetup: true
-			
 		input "tempoffset",
 			"number",
 			title: "Temperature offset",
@@ -169,7 +173,6 @@
 			defaultValue: 0,
             required: false,
             displayDuringSetup: false
-            
 		input "humidityoffset",
         	"number",
             title: "Humidity offset",
@@ -178,7 +181,6 @@
 			defaultValue: 0,
 			required: false,
             displayDuringSetup: false
-            
 		input "luminanceoffset",
           	"number",
             title: "Luminance offset",
@@ -187,7 +189,6 @@
 			defaultValue: 0,
             required: false,
 	        displayDuringSetup: false
-	        
 		input "ultravioletoffset",
           	"number",
             title: "Ultraviolet offset",
@@ -196,7 +197,6 @@
 			defaultValue: 0,
 	        required: false,
 			displayDuringSetup: false
-			
 		input "PIRsensitivity",
 	        "number",
     	    title: "PIR motion sensitivity",
@@ -205,15 +205,13 @@
 			defaultValue: 1,
 			required: true,
 			displayDuringSetup: true
-			
 		input "MotionReset",
 	        "number",
     	    title: "PIR reset time",
 			description: "Number of seconds to wait to report motion cleared after a motion event if there is no motion detected.",
 			defaultValue: 20,
 			required: true,
-			displayDuringSetup: true
-			
+			displayDuringSetup: true            
 		input "ReportingInterval",
         	"number",
             title: "Report data interval",
@@ -224,7 +222,8 @@
 	}
 }
 
-def updated() {
+def updated()
+{
 	state.debug = ("true" == debugOutput)
 	if (state.sec && !isConfigured()) {
 		// in case we miss the SCSR
@@ -232,7 +231,8 @@ def updated() {
 	}
 }
 
-def parse(String description) {
+def parse(String description)
+{
 	def result = null
 	if (description.startsWith("Err 106")) {
 		state.sec = 0
@@ -248,7 +248,8 @@ def parse(String description) {
 	return result
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
+def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd)
+{
 	def result = [createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)]
 
 	if (!isConfigured()) {
@@ -308,7 +309,8 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	createEvent(map)
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd) {
+def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv5.SensorMultilevelReport cmd)
+{
 	def map = [:]
 	switch (cmd.sensorType) {
 		case 1:
