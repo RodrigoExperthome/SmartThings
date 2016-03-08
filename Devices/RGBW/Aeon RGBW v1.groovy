@@ -17,7 +17,7 @@
  */
 
 metadata {
-	definition (name: "RGBW Light", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "RGBW Light v1", namespace: "squares", author: "squares") {
 		capability "Switch Level"
 		capability "Color Control"
 		capability "Color Temperature"
@@ -35,37 +35,51 @@ metadata {
 
 	simulator {
 	}
-
-	standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true) {
-		state "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
-		state "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
-		state "turningOn", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
-		state "turningOff", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
-	}
-	standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat") {
+	//Multi Atributo con manejo de RGB (Color Control)
+	//Crear setAdjustedColor --> se usa setColor
+	tiles(scale: 2) {
+    	multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4){
+        	tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
+            	attributeState "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
+				attributeState "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
+				attributeState "turningOn", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
+				attributeState "turningOff", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
+        }
+        tileAttribute ("device.level", key: "SLIDER_CONTROL") {
+			attributeState "level", action:"switch level.setLevel", range:"(0..100)"
+        }
+        tileAttribute ("device.level", key: "SECONDARY_CONTROL") {
+	        attributeState "level", label: 'Level ${currentValue}%'
+		}
+		tileAttribute ("device.color", key: "COLOR_CONTROL") {
+			attributeState "color", action:"setColor"
+		}
+    }
+	
+	//Controlador de Temperatura en K... Revisar procedimiento...
+	controlTile("colorTempControl", "device.colorTemperature", "slider", width: 4, height: 2, inactiveLabel: false) {
+        state "colorTemperature", action:"setColorTemperature"
+    }
+    valueTile("colorTemp", "device.colorTemperature", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        state "colorTemperature", label: '${currentValue} K'
+    }
+	standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 		state "default", label:"Reset Color", action:"reset", icon:"st.lights.philips.hue-single"
 	}
-	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
+	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 	}
-	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
+	//Control de luminosidad
+	controlTile("levelSliderControl", "device.level", "slider", height: 2, width: 4, inactiveLabel: false, range:"(0..100)") {
 		state "level", action:"switch level.setLevel"
 	}
-	controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
-		state "color", action:"setColor"
-	}
-	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
+	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
 		state "level", label: 'Level ${currentValue}%'
 	}
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
-		state "colorTemperature", action:"setColorTemperature"
-	}
-	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
-		state "hue", label: 'Hue ${currentValue}   '
-	}
-
+	
 	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
+	details(["status", "colorTempControl", "colorTemp", "levelSliderControl", "level", "refresh","reset"])
+}
 }
 
 def updated() {
