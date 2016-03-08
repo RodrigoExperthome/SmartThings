@@ -1,5 +1,9 @@
 /**
- *  Copyright 2015 SmartThings
+ *  
+ * 
+ * 
+ * 
+ * Copyright 2015 SmartThings
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -17,7 +21,7 @@
  */
 
 metadata {
-	definition (name: "RGBW Light v1", namespace: "squares", author: "squares") {
+	definition (name: "RGBW Light v1", namespace: "squares", author: "Rodrigo Cuadros") {
 		capability "Switch Level"
 		capability "Color Control"
 		capability "Color Temperature"
@@ -25,6 +29,10 @@ metadata {
 		capability "Refresh"
 		capability "Actuator"
 		capability "Sensor"
+		
+		capability "Power Meter"
+		capability "Polling"
+		capability "Configuration" 
 
 		command "reset"
 
@@ -79,7 +87,8 @@ metadata {
 	
 	main(["switch"])
 	details(["status", "colorTempControl", "colorTemp", "levelSliderControl", "level", "refresh","reset"])
-}
+
+	}
 }
 
 def updated() {
@@ -140,7 +149,6 @@ def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulat
 		result
 	}
 }
-
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	def linkText = device.label ?: device.name
