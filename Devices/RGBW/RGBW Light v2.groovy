@@ -85,8 +85,8 @@ metadata {
 
 	main(["switch"])
 	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
+    }
 }
-
 def updated() {
 	response(refresh())
 }
