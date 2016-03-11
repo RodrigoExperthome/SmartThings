@@ -55,11 +55,11 @@ metadata {
                 attributeState "color", action:"setAdjustedColor"
     		}*/
         }
-    standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat") {
+    standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
 		state "default", label:"Reset Color", action:"reset", icon:"st.lights.philips.hue-single"
 	}
 
-    standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
+    standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
 		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 	}
 
@@ -67,7 +67,7 @@ metadata {
 		state "level", action:"switch level.setLevel"
 	}
 
-    controlTile("rgbSelector", "device.color", "color", height: 2, width: 2, inactiveLabel: false) {
+    controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
 		state "color", action:"setColor"
 	}
 
@@ -84,7 +84,7 @@ metadata {
 	}
 
 	main(["status"])
-	details(["status", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
+	details(["status", "rgbSelector", "colorTempControl", "reset", "refresh"])
     }
 }
 def updated() {
