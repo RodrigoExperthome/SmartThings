@@ -75,7 +75,7 @@ metadata {
 		state "level", label: 'Level ${currentValue}%'
 	}
 
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 4, inactiveLabel: false) {
+	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 2, width: 4, inactiveLabel: false) {
 		state "colorTemperature", action:"setColorTemperature"
 	}
 
@@ -90,6 +90,7 @@ metadata {
     valueTile("colorT", "device.colorTemperature", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
         state "colorTemperature", label: ' ${currentValue} K  '
     }
+
 	main(["status"])
 	details(["status", "rgbSelector", "hue","sat","colorTempControl", "colorT","reset", "refresh"])
     }
@@ -235,9 +236,9 @@ def setColor(value) {
 }
 
 def setColorTemperature(percent) {
-	if(percent > 100) percent = 100
+	if(percent > 99) percent = 99
 	int warmValue = percent * 255 / 100
-    int colorK=(percent*38) + 2700
+    int colorK=((percent+1)*38) + 2700
     log.debug "'$colorK' K"
 	command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
 }
