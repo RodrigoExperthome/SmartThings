@@ -67,7 +67,7 @@ metadata {
 		state "level", action:"switch level.setLevel"
 	}
 
-    controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
+    controlTile("rgbSelector", "device.color", "color", height: 2, width: 2, inactiveLabel: false) {
 		state "color", action:"setColor"
 	}
 
@@ -83,8 +83,8 @@ metadata {
 		state "hue", label: 'Hue ${currentValue}   '
 	}
 
-	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
+	main(["status"])
+	details(["status", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
     }
 }
 def updated() {
