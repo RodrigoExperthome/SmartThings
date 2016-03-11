@@ -1,5 +1,5 @@
 /**
- *
+ *  TODO: Boton WarmWhite/ColdWhite en la UI
  *  Copyright 2015 SmartThings
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -67,7 +67,7 @@ metadata {
 		state "level", action:"switch level.setLevel"
 	}
 
-    controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
+    controlTile("rgbSelector", "device.color", "color", height: 4, width: 4, inactiveLabel: false) {
 		state "color", action:"setColor"
 	}
 
@@ -75,16 +75,23 @@ metadata {
 		state "level", label: 'Level ${currentValue}%'
 	}
 
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
+	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 4, inactiveLabel: false) {
 		state "colorTemperature", action:"setColorTemperature"
 	}
 
-	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
+	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
 		state "hue", label: 'Hue ${currentValue}   '
 	}
 
+    valueTile("sat", "device.saturation", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
+        state "saturation", label: 'sat ${currentValue}   '
+    }
+
+    valueTile("colorT", "device.colorTemperature", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
+        state "colorTemperature", label: ' ${currentValue} K  '
+    }
 	main(["status"])
-	details(["status", "rgbSelector", "colorTempControl", "reset", "refresh"])
+	details(["status", "rgbSelector", "hue","sat","colorTempControl", "colorT","reset", "refresh"])
     }
 }
 def updated() {
@@ -228,8 +235,10 @@ def setColor(value) {
 }
 
 def setColorTemperature(percent) {
-	if(percent > 99) percent = 99
-	int warmValue = percent * 255 / 99
+	if(percent > 100) percent = 100
+	int warmValue = percent * 255 / 100
+    int colorK=(percent*38) + 2700
+    log.debug "'$colorK' K"
 	command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
 }
 
