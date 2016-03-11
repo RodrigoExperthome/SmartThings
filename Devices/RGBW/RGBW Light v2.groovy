@@ -1,4 +1,5 @@
 /**
+ *
  *  Copyright 2015 SmartThings
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -17,49 +18,67 @@
  */
 
 metadata {
-	definition (name: "RGBW Light", namespace: "smartthings", author: "SmartThings") {
-		capability "Switch Level"
-		capability "Color Control"
-		capability "Color Temperature"
-		capability "Switch"
-		capability "Refresh"
-		capability "Actuator"
-		capability "Sensor"
+    definition (name: "RGBW ZWave", namespace: "squares", author: "Rodrigo Cuadros") {
+        capability "Switch Level"
+        capability "Color Control"
+        capability "Color Temperature"
+        capability "Switch"
+        capability "Refresh"
+        capability "Actuator"
+        capability "Sensor"
+        command "reset"
 
-		command "reset"
-
-		fingerprint inClusters: "0x26,0x33"
-		fingerprint deviceId: "0x1102", inClusters: "0x26,0x33"
-		fingerprint inClusters: "0x33"
-	}
+        fingerprint inClusters: "0x26,0x33"
+        fingerprint deviceId: "0x1102", inClusters: "0x26,0x33"
+        fingerprint inClusters: "0x33"
+    }
 
 	simulator {
 	}
 
-	standardTile("switch", "device.switch", width: 1, height: 1, canChangeIcon: true) {
-		state "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
-		state "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
-		state "turningOn", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
-		state "turningOff", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
-	}
-	standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat") {
+    tiles(scale: 2) {
+        multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4){
+            tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
+                attributeState "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
+                attributeState "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
+                attributeState "turningOn", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
+                attributeState "turningOff", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
+            }
+            tileAttribute ("device.level", key: "SLIDER_CONTROL") {
+                attributeState "level", action:"switch level.setLevel", range:"(0..100)"
+            }
+            tileAttribute ("device.level", key: "SECONDARY_CONTROL") {
+                attributeState "level", label: 'Level ${currentValue}%'
+    		}
+    		/* Notar que es necesario usar procedimiento setAdjustedColor
+            tileAttribute ("device.color", key: "COLOR_CONTROL") {
+                attributeState "color", action:"setAdjustedColor"
+    		}*/
+        }
+    standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat") {
 		state "default", label:"Reset Color", action:"reset", icon:"st.lights.philips.hue-single"
 	}
-	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
+
+    standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 	}
-	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
+
+    controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
 		state "level", action:"switch level.setLevel"
 	}
-	controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
+
+    controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
 		state "color", action:"setColor"
 	}
-	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
+
+    valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
 		state "level", label: 'Level ${currentValue}%'
 	}
+
 	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
 		state "colorTemperature", action:"setColorTemperature"
 	}
+
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
 		state "hue", label: 'Hue ${currentValue}   '
 	}
@@ -177,17 +196,27 @@ def setHue(value) {
 
 def setColor(value) {
 	def result = []
-	log.debug "setColor: ${value}"
+	//log.debug "setColor: ${value}"
 	if (value.hex) {
-		def c = value.hex.findAll(/[0-9a-fA-F]{2}/).collect { Integer.parseInt(it, 16) }
-		result << zwave.switchColorV3.switchColorSet(red:c[0], green:c[1], blue:c[2], warmWhite:0, coldWhite:0)
+        log.debug "setting color with hex values"
+        def c = value.hex.findAll(/[0-9a-fA-F]{2}/).collect { Integer.parseInt(it, 16)}
+        result << zwave.switchColorV3.switchColorSet(red:c[0], green:c[1], blue:c[2], warmWhite:0, coldWhite:0)
 	} else {
 		def hue = value.hue ?: device.currentValue("hue")
 		def saturation = value.saturation ?: device.currentValue("saturation")
 		if(hue == null) hue = 13
 		if(saturation == null) saturation = 13
-		def rgb = huesatToRGB(hue, saturation)
-		result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
+	    def rgb = huesatToRGB(hue, saturation)
+         if(hue==52 && saturation==19) {
+             log.debug "setting coldWhite"
+            result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:0, coldWhite:255)
+        } else if(hue==20 && saturation==80) {
+            log.debug "setting warmWhite"
+           result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:255, coldWhite:0)
+       } else {
+           log.debug "setting RGB Color"
+           result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
+       }
 	}
 
 	if(value.hue) sendEvent(name: "hue", value: value.hue)
