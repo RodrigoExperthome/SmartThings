@@ -238,9 +238,14 @@ def setColor(value) {
 def setColorTemperature(percent) {
 	if(percent > 99) percent = 99
 	int warmValue = percent * 255 / 100
-    int colorK=((percent+1)*38) + 2700
+    int colorK=(percent*38) + 2700
     log.debug "'$colorK' K"
 	command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
+    if(value.colorTemperature) {
+        sendEvent(name:"colorTemperature", value=colorK)
+        sendEvent(name:"hue", value="--")
+        sendEvent(name:"saturation", value="--")
+    }
 }
 
 def reset() {
@@ -259,6 +264,13 @@ private command(physicalgraph.zwave.Command cmd) {
 
 private commands(commands, delay=200) {
 	delayBetween(commands.collect{ command(it) }, delay)
+}
+
+def setAdjustedColor(value) {
+	log.debug "setAdjustedColor: ${value}"
+	def adjusted = value + [:]
+	adjusted.level = null // needed because color picker always sends 100
+	setColor(adjusted)
 }
 
 def rgbToHSV(red, green, blue) {
