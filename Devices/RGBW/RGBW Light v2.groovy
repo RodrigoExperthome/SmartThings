@@ -35,7 +35,7 @@ metadata {
 
 	simulator {
 	}
-
+/*
     tiles(scale: 2) {
         multiAttributeTile(name:"status", type: "lighting", width: 6, height: 4){
             tileAttribute ("device.status", key: "PRIMARY_CONTROL") {
@@ -53,8 +53,15 @@ metadata {
     		/* Notar que es necesario usar procedimiento setAdjustedColor
             tileAttribute ("device.color", key: "COLOR_CONTROL") {
                 attributeState "color", action:"setAdjustedColor"
-    		}*/
+    		}
         }
+    }*/
+    standardTile("status", "device.switch", width: 2, height: 2, canChangeIcon: true) {
+		state "on", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
+		state "off", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
+		state "turningOn", label:'${name}', action:"switch.off", icon:"st.lights.philips.hue-single", backgroundColor:"#79b821", nextState:"turningOff"
+		state "turningOff", label:'${name}', action:"switch.on", icon:"st.lights.philips.hue-single", backgroundColor:"#ffffff", nextState:"turningOn"
+	}
     standardTile("reset", "device.reset", inactiveLabel: false, decoration: "flat", height: 2, width: 2) {
 		state "default", label:"Reset Color", action:"reset", icon:"st.lights.philips.hue-single"
 	}
@@ -75,7 +82,7 @@ metadata {
 		state "level", label: 'Level ${currentValue}%'
 	}
 
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 2, width: 4, inactiveLabel: false) {
+	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 2, width: 4, inactiveLabel: false, range:"(0..100)") {
 		state "colorTemperature", action:"setColorTemperature"
 	}
 
@@ -93,7 +100,7 @@ metadata {
 
 	main(["status"])
 	details(["status", "rgbSelector", "hue","sat","colorTempControl", "colorT","reset", "refresh"])
-    }
+
 }
 def updated() {
 	response(refresh())
@@ -210,7 +217,7 @@ def setColor(value) {
         def c = value.hex.findAll(/[0-9a-fA-F]{2}/).collect { Integer.parseInt(it, 16)}
         result << zwave.switchColorV3.switchColorSet(red:c[0], green:c[1], blue:c[2], warmWhite:0, coldWhite:0)
         sendEvent(name: "color", value: value.hex)
-        sendEvent(name:"colorTemperature", value=null)
+        sendEvent(name:"colorTemperature", value="--")
 	} else {
 		def hue = value.hue ?: device.currentValue("hue")
 		def saturation = value.saturation ?: device.currentValue("saturation")
@@ -231,7 +238,7 @@ def setColor(value) {
            result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
            sendEvent(name: "hue", value: value.hue)
            sendEvent(name: "saturation", value: value.saturation)
-           sendEvent(name:"colorTemperature", value=null)
+           sendEvent(name:"colorTemperature", value="--")
            //if(value.switch) sendEvent(name: "switch", value: value.switch)
        }
 	}
@@ -245,14 +252,14 @@ def setColor(value) {
 }
 
 def setColorTemperature(percent) {
-	if(percent > 99) percent = 99
+	if(percent > 100) percent = 100
 	int warmValue = percent * 255 / 100
     int colorK=(percent*38) + 2700
     log.debug "'$colorK' K"
     command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
     sendEvent(name:"colorTemperature", value=colorK)
-    sendEvent(name:"hue", value=null)
-    sendEvent(name:"saturation", value=null)
+    sendEvent(name:"hue", value="--")
+    sendEvent(name:"saturation", value="--")
 }
 
 def reset() {
