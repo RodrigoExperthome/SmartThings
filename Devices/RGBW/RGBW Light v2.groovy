@@ -63,9 +63,15 @@ metadata {
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
 		state "hue", label: 'Hue ${currentValue}   '
 	}
+    valueTile("saturation", "device.saturation", inactiveLabel: false, decoration: "flat") {
+		state "saturation", label: 'Sat ${currentValue}   '
+	}
+    valueTile("colorTemperature", "device.colorTemperature", inactiveLabel: false, decoration: "flat") {
+		state "colorTemperature", label: '${currentValue} K '
+	}
 
 	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
+	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh", "hue", "sat", "colorTemperature"])
 }
 def updated() {
 	response(refresh())
