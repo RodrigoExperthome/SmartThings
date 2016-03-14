@@ -57,7 +57,7 @@ metadata {
 	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
 		state "level", label: 'Level ${currentValue}%'
 	}
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
+	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
 		state "colorTemperature", action:"setColorTemperature"
 	}
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
@@ -181,8 +181,8 @@ def setColor(value) {
         log.debug "setting color with hex values"
         def c = value.hex.findAll(/[0-9a-fA-F]{2}/).collect { Integer.parseInt(it, 16)}
         result << zwave.switchColorV3.switchColorSet(red:c[0], green:c[1], blue:c[2], warmWhite:0, coldWhite:0)
-        sendEvent(name: "color", value: value.hex)
-        sendEvent(name:"colorTemperature", value="--")
+        sendEvent(name:"color", value: value.hex)
+        sendEvent(name:"colorTemperature", value: "--")
 	} else {
 		def hue = value.hue ?: device.currentValue("hue")
 		def saturation = value.saturation ?: device.currentValue("saturation")
@@ -203,7 +203,7 @@ def setColor(value) {
            result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
            sendEvent(name: "hue", value: value.hue)
            sendEvent(name: "saturation", value: value.saturation)
-           sendEvent(name:"colorTemperature", value="--")
+           sendEvent(name:"colorTemperature", value: "--")
            //if(value.switch) sendEvent(name: "switch", value: value.switch)
        }
 	}
@@ -223,8 +223,8 @@ def setColorTemperature(percent) {
     log.debug "'$colorK' K"
     command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
     sendEvent(name:"colorTemperature", value=colorK)
-    sendEvent(name:"hue", value="--")
-    sendEvent(name:"saturation", value="--")
+    sendEvent(name:"hue", value:"--")
+    sendEvent(name:"saturation", value:"--")
 }
 
 def reset() {
