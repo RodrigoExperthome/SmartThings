@@ -189,6 +189,7 @@ def setColor(value) {
         result << zwave.switchColorV3.switchColorSet(red:c[0], green:c[1], blue:c[2], warmWhite:0, coldWhite:0)
         sendEvent(name:"color", value: value.hex)
         sendEvent(name:"colorTemperature", value: "--")
+        //Incluir hue & sat, para temas de informaccion.
 	} else {
 		def hue = value.hue ?: device.currentValue("hue")
 		def saturation = value.saturation ?: device.currentValue("saturation")
@@ -228,7 +229,7 @@ def setColorTemperature(percent) {
     int colorK=(percent*38) + 2700
     log.debug "'$colorK' K"
     command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
-    sendEvent(name:"colorTemperature", value: "colorK")
+    sendEvent(name:"colorTemperature", value: colorK)
     sendEvent(name:"hue", value:"--")
     sendEvent(name:"saturation", value:"--")
 }
