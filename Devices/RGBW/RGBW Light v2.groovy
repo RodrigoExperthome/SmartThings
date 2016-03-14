@@ -71,7 +71,7 @@ metadata {
 	}
 
 	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh", "hue", "sat", "colorTemperature"])
+	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh", "hue", "saturation", "colorTemperature"])
 }
 def updated() {
 	response(refresh())
@@ -228,7 +228,7 @@ def setColorTemperature(percent) {
     int colorK=(percent*38) + 2700
     log.debug "'$colorK' K"
     command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
-    sendEvent(name:"colorTemperature", value=colorK)
+    sendEvent(name:"colorTemperature", value: "colorK")
     sendEvent(name:"hue", value:"--")
     sendEvent(name:"saturation", value:"--")
 }
