@@ -48,7 +48,7 @@ metadata {
 	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 	}
-	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
+	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..99)") {
 		state "level", action:"switch level.setLevel"
 	}
 	controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
@@ -57,7 +57,7 @@ metadata {
 	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
 		state "level", label: 'Level ${currentValue}%'
 	}
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
+	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..99)") {
 		state "colorTemperature", action:"setColorTemperature"
 	}
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
@@ -224,9 +224,9 @@ def setColor(value) {
 }
 
 def setColorTemperature(percent) {
-	if(percent > 100) percent = 100
-	int warmValue = percent * 255 / 100
-    int colorK=(percent*38) + 2700
+	if(percent > 99) percent = 99
+	int warmValue = percent * 255 / 99
+    int colorK=((percent+1)*38) + 2700
     log.debug "'$colorK' K"
     command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
     sendEvent(name:"colorTemperature", value: colorK)
