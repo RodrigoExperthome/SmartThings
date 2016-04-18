@@ -14,10 +14,13 @@
  *
  *  Author: SmartThings
  *  Date: 2015-7-12
+ *  
+ *  Version History
+ *  1.0.	18 Apr 2016	Incorporate RM color integration for White and WarmWhite to allow capture/restore, not modifying setColorTemp
  */
 
 metadata {
-	definition (name: "Aeon LED Bulb", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Aeon RGBW RM", namespace: "experthome", author: "ExpertHome") {
 		capability "Switch Level"
 		capability "Color Control"
 		capability "Color Temperature"
@@ -168,6 +171,7 @@ def setHue(value) {
 	setColor(hue: value)
 }
 
+//Implementation of warmWhite and White from Rule Machine Hue/Sat scale.
 def setColor(value) {
 	def result = []
 	log.debug "setColor: ${value}"
@@ -179,6 +183,16 @@ def setColor(value) {
 		def saturation = value.saturation ?: device.currentValue("saturation")
 		if(hue == null) hue = 13
 		if(saturation == null) saturation = 13
+		//White
+		if(hue==52 && saturation==19){
+			result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:0, coldWhite:255)	
+			break
+		}
+		//warmWhite
+		if(hue==20 && saturation==80){
+			result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:255, coldWhite:0)		
+			break
+		}
 		def rgb = huesatToRGB(hue, saturation)
 		result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
 	}
@@ -190,7 +204,10 @@ def setColor(value) {
 
 	commands(result)
 }
-
+//Implementación zwave.switchColorV3 solo considera warmWhite (2700k) y coldWhite (6500k), y no permite valores intermedios
+//warmWhite tiene prioridad sobre coldWhite (ie, warmWhite > 0 y coldWhite > warmWhite --> warmWhite esta activo)
+//warmWhite y coldWhite tienen prioridad sobre RGB.
+//setColorTemperature con escalación NO SIRVE.
 def setColorTemperature(percent) {
 	if(percent > 99) percent = 99
 	int warmValue = percent * 255 / 99
