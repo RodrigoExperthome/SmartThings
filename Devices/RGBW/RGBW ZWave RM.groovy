@@ -33,6 +33,8 @@ metadata {
 		capability "Sensor"
 
 		command "reset"
+		command "warmWhite"
+		command "coldWhite"
 
 		fingerprint inClusters: "0x26,0x33"
 		fingerprint deviceId: "0x1102", inClusters: "0x26,0x33"
@@ -54,7 +56,7 @@ metadata {
 	standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 		state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 	}
-	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 2, inactiveLabel: false, range:"(0..100)") {
+	controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 3, inactiveLabel: false, range:"(0..100)") {
 		state "level", action:"switch level.setLevel"
 	}
 	controlTile("rgbSelector", "device.color", "color", height: 3, width: 3, inactiveLabel: false) {
@@ -63,15 +65,23 @@ metadata {
 	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
 		state "level", label: 'Level ${currentValue}%'
 	}
+	standardTile("warmWhite", "device.warmWhite", height: 1, inactiveLabel: false, canChangeIcon: false) {
+        state "offwarmwhite", label:"warm White", action:"warmwhite", icon:"st.illuminance.illuminance.dark", backgroundColor:"#D8D8D8"
+        state "onwarmwhite", label:"warm White", action:"warmwhite", icon:"st.illuminance.illuminance.bright", backgroundColor:"#FFF4E5"
+    }
+    standardTile("coldWhite", "device.coldWhite", height: 1, inactiveLabel: false, canChangeIcon: false) {
+        state "offcoldwhite", label:"cold White", action:"coldWhite", icon:"st.illuminance.illuminance.dark", backgroundColor:"#D8D8D8"
+        state "oncoldwhite", label:"cold White", action:"coldWhite", icon:"st.illuminance.illuminance.bright", backgroundColor:"#FFFFFF"
+    }
 	//controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
 	//	state "colorTemperature", action:"setColorTemperature"
 	//}
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
-		state "hue", label: 'Hue ${currentValue}   '
+		state "hue", label: 'Hue ${currentValue}'
 	}
-
+	
 	main(["switch"])
-	details(["switch", "levelSliderControl", "rgbSelector", "reset", "colorTempControl", "refresh"])
+	details(["switch","warmWhite","coldWhite","levelSliderControl", "rgbSelector","hue", "reset", "refresh"])
 }
 
 def updated() {
@@ -192,7 +202,6 @@ def setColor(value) {
 		def saturation = value.saturation ?: device.currentValue("saturation")
 		if(hue == null) hue = 13
 		if(saturation == null) saturation = 13
-		
 		//White
 		if(hue==52 && saturation==19){
 			result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:0, coldWhite:255)	
@@ -207,12 +216,10 @@ def setColor(value) {
 			result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
 		}
 	}
-
 	if(value.hue) sendEvent(name: "hue", value: value.hue)
 	if(value.hex) sendEvent(name: "color", value: value.hex)
 	if(value.switch) sendEvent(name: "switch", value: value.switch)
 	if(value.saturation) sendEvent(name: "saturation", value: value.saturation)
-
 	commands(result)
 }
 
@@ -241,6 +248,20 @@ private command(physicalgraph.zwave.Command cmd) {
 
 private commands(commands, delay=200) {
 	delayBetween(commands.collect{ command(it) }, delay)
+}
+
+def warmWhite() {
+    log.debug "Warm White"
+    if (device.latestValue("switch") == "off") { on() }
+    //toggleTiles(colorName.toLowerCase().replaceAll("\\s",""))
+   	setColor(hue: 20, saturation: 80)
+}
+
+def coldWhite() {
+    log.debug "Cold White"
+    if (device.latestValue("switch") == "off") { on() }
+    //toggleTiles(colorName.toLowerCase().replaceAll("\\s",""))
+   	setColor(hue: 52, saturation: 19)
 }
 
 def rgbToHSV(red, green, blue) {
