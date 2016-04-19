@@ -14,6 +14,12 @@
  *
  *  Author: SmartThings
  *  Date: 2015-7-12
+ *  
+ *  Version
+ *  0.1.	18 Apr 2016	setColor to recognize white and warmwhite hue/sat from Rule Machine
+ *  0.2.	19 Apr 2016	replace setColorTemperature slider with white/warmWhite button.
+ * 						replace setColorTemperature function with native setColor capacity for white and warmWhite.
+ * 
  */
 
 metadata {
@@ -57,9 +63,9 @@ metadata {
 	valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
 		state "level", label: 'Level ${currentValue}%'
 	}
-	controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
-		state "colorTemperature", action:"setColorTemperature"
-	}
+	//controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
+	//	state "colorTemperature", action:"setColorTemperature"
+	//}
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
 		state "hue", label: 'Hue ${currentValue}   '
 	}
@@ -210,16 +216,19 @@ def setColor(value) {
 	commands(result)
 }
 
-def setColorTemperature(percent) {
+/**
+ def setColorTemperature(percent) {
 	if(percent > 99) percent = 99
 	int warmValue = percent * 255 / 99
 	command(zwave.switchColorV3.switchColorSet(red:0, green:0, blue:0, warmWhite:warmValue, coldWhite:(255 - warmValue)))
 }
+*/
 
 def reset() {
 	log.debug "reset()"
-	sendEvent(name: "color", value: "#ffffff")
-	setColorTemperature(99)
+	//sendEvent(name: "color", value: "#ffffff")
+	setColor(hue: 52, saturation: 19)
+	//setColorTemperature(99)
 }
 
 private command(physicalgraph.zwave.Command cmd) {
