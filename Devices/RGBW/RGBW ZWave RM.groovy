@@ -17,7 +17,7 @@
  */
 
 metadata {
-	definition (name: "RGBW Light", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "RGBW ZWave RM", namespace: "experthome", author: "rodrigo@experthome.cl") {
 		capability "Switch Level"
 		capability "Color Control"
 		capability "Color Temperature"
@@ -186,8 +186,20 @@ def setColor(value) {
 		def saturation = value.saturation ?: device.currentValue("saturation")
 		if(hue == null) hue = 13
 		if(saturation == null) saturation = 13
-		def rgb = huesatToRGB(hue, saturation)
-		result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
+		
+		//White
+		if(hue==52 && saturation==19){
+			result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:0, coldWhite:255)	
+		}
+		//warmWhite
+		else if(hue==20 && saturation==80){
+			result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:255, coldWhite:0)		
+		}
+		//Other colors
+		else {
+			def rgb = huesatToRGB(hue, saturation)
+			result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
+		}
 	}
 
 	if(value.hue) sendEvent(name: "hue", value: value.hue)
