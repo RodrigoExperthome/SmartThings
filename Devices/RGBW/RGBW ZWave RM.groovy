@@ -17,8 +17,9 @@
  *  
  *  Version
  *  0.1.	18 Apr 2016	setColor to recognize white and warmwhite hue/sat from Rule Machine
- *  0.2.	19 Apr 2016	replace setColorTemperature slider with white/warmWhite button.
- * 						replace setColorTemperature function with native setColor capacity for white and warmWhite.
+ *  0.2.	19 Apr 2016	replace setColorTemperature slider with white/warmWhite button (buttons not working)
+ *  0.3.	19 Apr 2016 eliminate setColorTemperature, and use setColor for warmWhite/coldWhite
+ * 						
  * 
  */
 
@@ -66,12 +67,12 @@ metadata {
 		state "level", label: 'Level ${currentValue}%'
 	}
 	standardTile("warmWhite", "device.warmWhite", height: 1, inactiveLabel: false, canChangeIcon: false) {
-        state "offwarmwhite", label:"warm White", action:"warmwhite", icon:"st.illuminance.illuminance.dark", backgroundColor:"#D8D8D8"
-        state "onwarmwhite", label:"warm White", action:"warmwhite", icon:"st.illuminance.illuminance.bright", backgroundColor:"#FFF4E5"
+        state "warmWhite", label:"warm White", action:"warmWhite", icon:"st.illuminance.illuminance.dark", backgroundColor:"#D8D8D8"
+        //state "onwarmwhite", label:"warm White", action:"warmWhite", icon:"st.illuminance.illuminance.bright", backgroundColor:"#FFF4E5"
     }
     standardTile("coldWhite", "device.coldWhite", height: 1, inactiveLabel: false, canChangeIcon: false) {
-        state "offcoldwhite", label:"cold White", action:"coldWhite", icon:"st.illuminance.illuminance.dark", backgroundColor:"#D8D8D8"
-        state "oncoldwhite", label:"cold White", action:"coldWhite", icon:"st.illuminance.illuminance.bright", backgroundColor:"#FFFFFF"
+        state "coldWhite", label:"cold White", action:"coldWhite", icon:"st.illuminance.illuminance.dark", backgroundColor:"#D8D8D8"
+        //state "oncoldwhite", label:"cold White", action:"coldWhite", icon:"st.illuminance.illuminance.bright", backgroundColor:"#FFFFFF"
     }
 	//controlTile("colorTempControl", "device.colorTemperature", "slider", height: 1, width: 2, inactiveLabel: false) {
 	//	state "colorTemperature", action:"setColorTemperature"
@@ -79,9 +80,12 @@ metadata {
 	valueTile("hue", "device.hue", inactiveLabel: false, decoration: "flat") {
 		state "hue", label: 'Hue ${currentValue}'
 	}
+	valueTile("saturation", "device.saturation", inactiveLabel: false, decoration: "flat") {
+		state "saturation", label: 'Sat ${currentValue}    '
+	}
 	
 	main(["switch"])
-	details(["switch","warmWhite","coldWhite","levelSliderControl", "rgbSelector","hue", "reset", "refresh"])
+	details(["switch","warmWhite","coldWhite","levelSliderControl", "rgbSelector","hue","saturation","reset", "refresh"])
 }
 
 def updated() {
@@ -202,7 +206,7 @@ def setColor(value) {
 		def saturation = value.saturation ?: device.currentValue("saturation")
 		if(hue == null) hue = 13
 		if(saturation == null) saturation = 13
-		//White
+		//coldWhite
 		if(hue==52 && saturation==19){
 			result << zwave.switchColorV3.switchColorSet(red: 0, green: 0, blue: 0, warmWhite:0, coldWhite:255)	
 		}
@@ -234,10 +238,10 @@ def setColor(value) {
 def reset() {
 	log.debug "reset()"
 	//sendEvent(name: "color", value: "#ffffff")
+	//Reset to coldWhite
 	setColor(hue: 52, saturation: 19)
 	//setColorTemperature(99)
 }
-
 private command(physicalgraph.zwave.Command cmd) {
 	if (state.sec) {
 		zwave.securityV1.securityMessageEncapsulation().encapsulate(cmd).format()
