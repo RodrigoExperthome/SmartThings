@@ -17,7 +17,7 @@
  *  
  *  Version
  *  0.1.	18 Apr 2016	setColor to recognize white and warmwhite hue/sat from Rule Machine
- *  0.2.	19 Apr 2016	replace setColorTemperature slider with white/warmWhite button (buttons not working)
+ *  0.2.	19 Apr 2016	replace setColorTemperature slider with white/warmWhite button
  *  0.3.	19 Apr 2016 eliminate setColorTemperature, and use setColor for warmWhite/coldWhite
  * 						
  * 
