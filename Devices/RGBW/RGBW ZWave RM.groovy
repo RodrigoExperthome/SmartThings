@@ -157,14 +157,14 @@ def on() {
 	commands([
 		zwave.basicV1.basicSet(value: 0xFF),
 		zwave.switchMultilevelV3.switchMultilevelGet(),
-	], 3500)
+	], 4500)
 }
 
 def off() {
 	commands([
 		zwave.basicV1.basicSet(value: 0x00),
 		zwave.switchMultilevelV3.switchMultilevelGet(),
-	], 3500)
+	], 4500)
 }
 
 def setLevel(level) {
@@ -198,6 +198,12 @@ def setHue(value) {
 def setColor(value) {
 	def result = []
 	log.debug "setColor: ${value}"
+	/*
+	if (device.latestValue("switch") == "off"){
+		result << zwave.basicV1.basicSet(value: 0xFF)	
+		result << zwave.switchMultilevelV3.switchMultilevelGet()	
+	}
+	*/
 	if (value.hex) {
 		def c = value.hex.findAll(/[0-9a-fA-F]{2}/).collect { Integer.parseInt(it, 16) }
 		result << zwave.switchColorV3.switchColorSet(red:c[0], green:c[1], blue:c[2], warmWhite:0, coldWhite:0)
@@ -220,6 +226,7 @@ def setColor(value) {
 			result << zwave.switchColorV3.switchColorSet(red: rgb[0], green: rgb[1], blue: rgb[2], warmWhite:0, coldWhite:0)
 		}
 	}
+	
 	if(value.hue) sendEvent(name: "hue", value: value.hue)
 	if(value.hex) sendEvent(name: "color", value: value.hex)
 	if(value.switch) sendEvent(name: "switch", value: value.switch)
