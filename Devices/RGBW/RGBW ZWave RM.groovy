@@ -15,6 +15,8 @@
  *  Author: SmartThings
  *  Date: 2015-7-12
  *  
+ *  Changes: ExpertHome
+ * 
  *  Version
  *  0.1.	18 Apr 2016	setColor to recognize white and warmwhite hue/sat from Rule Machine
  *  0.2.	19 Apr 2016	replace setColorTemperature slider with white/warmWhite button
