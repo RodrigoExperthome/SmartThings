@@ -10,7 +10,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- *  Z-Wave RGBW Light
+ *  
  *
  *  Author: SmartThings
  *  Date: 2015-7-12
@@ -78,7 +78,7 @@ def setLevel(val){
     if(val == 0){
     off()
     sendEvent(name: "level", value: val)
-    } else{
+    } else {
  	on()
  	sendEvent(name: "level", value: val)
     }
