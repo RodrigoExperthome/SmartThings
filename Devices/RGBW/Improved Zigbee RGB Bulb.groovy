@@ -40,7 +40,7 @@ metadata {
         attribute "colorName", "string"
         attribute "switchColor", "string"
 
-		fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,0300,1000", outClusters: "0019"
+	fingerprint profileId: "C05E", inClusters: "0000,0003,0004,0005,0006,0008,0300,1000", outClusters: "0019"
 	}
 
 	// simulator metadata
@@ -101,22 +101,22 @@ metadata {
 		controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 4, inactiveLabel: false) {
 			state "level", action:"switch level.setLevel"
 		}
-        controlTile("colorTempSliderControl", "device.colorTemperature", "slider", height: 1, width: 4, inactiveLabel: false, range:"(2000..6500)") {
-            state "colorTemperature", action:"color temperature.setColorTemperature"
-        }
-        valueTile("colorTemp", "device.colorTemperature", height: 1, width: 2, inactiveLabel: false, decoration: "flat") {
-            state "colorTemperature", label: '${currentValue} K'
-        }
+        //controlTile("colorTempSliderControl", "device.colorTemperature", "slider", height: 1, width: 4, inactiveLabel: false, range:"(2000..6500)") {
+        //    state "colorTemperature", action:"color temperature.setColorTemperature"
+        //}
+        //valueTile("colorTemp", "device.colorTemperature", height: 1, width: 2, inactiveLabel: false, decoration: "flat") {
+        //    state "colorTemperature", label: '${currentValue} K'
+        //}
         valueTile("colorName", "device.colorName", height: 1, width: 2, inactiveLabel: false, decoration: "flat") {
             state "colorName", label: '${currentValue}'
         }
-        valueTile("colorMode", "device.colorMode", height: 2, width: 2, inactiveLabel: false, decoration: "flat") {
-            state "colorMode", label: '${currentValue}'
-        }
+        //valueTile("colorMode", "device.colorMode", height: 2, width: 2, inactiveLabel: false, decoration: "flat") {
+        //    state "colorMode", label: '${currentValue}'
+        //}
         
         
 		main(["switch"])
-		details(["switch", "levelSliderControl", "colorName", "colorTempSliderControl", "colorTemp", "colorMode", "refresh"])
+		details(["switch", "levelSliderControl", "colorName", "refresh"])
 	}
 }
 
@@ -267,14 +267,14 @@ def setAdjustedColor(value) {
 def setColor(value){
     log.trace "setColor($value)"
     def max = 0xfe
-	if (value.hue == 0 && value.saturation == 0) { setColorTemperature(3500) }
-    else if (value.red == 255 && value.blue == 185 && value.green == 255) { setColorTemperature(2700) }
-    else {
+	//if (value.hue == 0 && value.saturation == 0) { setColorTemperature(3500) }
+    //else if (value.red == 255 && value.blue == 185 && value.green == 255) { setColorTemperature(2700) }
+    //else {
     if (value.hex) { sendEvent(name: "color", value: value.hex, displayed:false)}
 
     def colorName = getColorName(value.hue)
     sendEvent(name: "colorName", value: colorName)
-    sendEvent(name: "colorMode", value: "Color")
+    //sendEvent(name: "colorMode", value: "Color")
     sendEvent(name: "switchColor", value: device.currentValue("colorName"), displayed: false)
 
     log.debug "color name is : $colorName"
@@ -305,7 +305,7 @@ def setColor(value){
     }
 
     cmd
-    }
+    //}
 }
 
 def setSaturation(value) {
