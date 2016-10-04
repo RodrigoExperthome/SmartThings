@@ -21,7 +21,7 @@
 
 metadata {
 	// Automatically generated. Make future change here.
-	definition (name: "Improved Zigbee Hue Bulb MA", namespace: "smartthings", author: "SmartThings") {
+	definition (name: "Improved Zigbee RGB Bulb MA", namespace: "smartthings", author: "SmartThings") {
 		capability "Switch Level"
 		capability "Actuator"
 		capability "Color Control"
